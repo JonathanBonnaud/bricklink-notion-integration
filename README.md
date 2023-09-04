@@ -13,7 +13,10 @@ Notion integration with BrickLink data
 ## To insert the data into Notion
 
 ### Create a new database in Notion
-`python notion_main.py`
+`python notion/create_db.py`
 
 ### Add pages to the database in Notion
-`python notion_add_page.py`
+`python notion/add_page_to_db.py CATEGORY`
+
+or
+`python notion/add_all_pages_to_db.py` for all categories

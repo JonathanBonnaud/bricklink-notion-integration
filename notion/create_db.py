@@ -2,7 +2,7 @@ import json
 
 import requests
 
-from constants import NOTION_LEGO_COLLECTION_SECRET, PAGE_ID
+from notion.private_secrets import NOTION_LEGO_COLLECTION_SECRET, PAGE_ID
 from table_properties import MINIFIG_MINIMAL_SCHEMA
 
 HEADERS = {
@@ -10,6 +10,11 @@ HEADERS = {
     "Notion-Version": "2022-06-28",
     "Content-Type": "application/json",
 }
+
+
+def write_to_file(db_id: str):
+    with open(f"notion/database_id.txt", "w") as file:
+        file.write(db_id)
 
 
 def create_minifig_database():
@@ -22,7 +27,11 @@ def create_minifig_database():
     res = requests.post(
         "https://api.notion.com/v1/databases/", data=json.dumps(data), headers=HEADERS
     )
-    print(json.dumps(res.json(), sort_keys=True, indent=4))
+    # print(json.dumps(res.json(), sort_keys=True, indent=4))
+
+    db_id = res.json()["id"]
+    print(f"Created database with id: {db_id}")
+    write_to_file(db_id)
 
 
 if __name__ == "__main__":

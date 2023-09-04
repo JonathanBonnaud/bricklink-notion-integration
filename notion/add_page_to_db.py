@@ -7,20 +7,13 @@ import pandas as pd
 import requests
 from tqdm import tqdm
 
-from constants import NOTION_LEGO_COLLECTION_SECRET
+from notion.private_secrets import NOTION_LEGO_COLLECTION_SECRET
+from constants import CATEGORY_MAPPING
 
 HEADERS = {
     "Authorization": f"Bearer {NOTION_LEGO_COLLECTION_SECRET}",
     "Notion-Version": "2022-06-28",
     "Content-Type": "application/json",
-}
-
-CATEGORY_MAPPING = {
-    "sw": "Star Wars",
-    "hp": "Harry Potter",
-    "sh": "Super Heroes",
-    "avt": "Avatar",
-    "hfw": "Horizon",
 }
 
 
@@ -35,8 +28,12 @@ def read_minifig_database(category: str) -> pd.DataFrame:
     return df
 
 
-def create_minifig_page(row: pd.Series):
-    database_id = "eefe3582-6ed6-4910-8d25-597d60db6fa6"
+def read_db_id_from_file() -> str:
+    with open(f"notion/database_id.txt", "r") as file:
+        return str(file.read())
+
+
+def create_minifig_page(db_id: str, row: pd.Series):
     try:
         assert row["avg_price_pln"] != 0
         avg_price_pln = float(row["avg_price_pln"])
@@ -44,7 +41,7 @@ def create_minifig_page(row: pd.Series):
         avg_price_pln = None
 
     data = {
-        "parent": {"database_id": database_id},
+        "parent": {"database_id": db_id},
         "properties": {
             "Name": {"rich_text": [{"text": {"content": row["name"]}}]},
             "Id": {"title": [{"text": {"content": row["id"]}}]},
@@ -89,7 +86,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(f"Sending minifigs for category: {args.category or 'all'}")
 
-    df = read_minifig_database(args.category)
+    database_id = read_db_id_from_file()
+    print(f"Writing to database '{database_id}'")
 
-    for _, row in tqdm(df.iterrows(), total=df.shape[0]):
-        create_minifig_page(row)
+    df = read_minifig_database(args.category)
+    for _, df_row in tqdm(df.iterrows(), total=df.shape[0]):
+        create_minifig_page(database_id, df_row)

@@ -11,11 +11,7 @@ from tqdm import tqdm
 from exceptions import CategoryNotFound, NameNotFound
 from sqlite import insert_minifig
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:12.0) Gecko/20100101 Firefox/12.0",
-    "Accept-Encoding": "br, gzip, deflate",
-    "Accept": "test/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-}
+from constants import HEADERS
 
 
 def get_price(minifig_id: str) -> str:
