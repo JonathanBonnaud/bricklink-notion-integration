@@ -2,11 +2,12 @@ import json
 
 import requests
 
-from notion.private_secrets import NOTION_LEGO_COLLECTION_SECRET, PAGE_ID
+from notion.private_secrets import NOTION_LEGO_COLLECTION_SECRET, PAGE_ID, NOTION_JONATHAN_SECRET
 from table_properties import MINIFIG_MINIMAL_SCHEMA
 
 HEADERS = {
-    "Authorization": f"Bearer {NOTION_LEGO_COLLECTION_SECRET}",
+    # "Authorization": f"Bearer {NOTION_LEGO_COLLECTION_SECRET}",
+    "Authorization": f"Bearer {NOTION_JONATHAN_SECRET}",
     "Notion-Version": "2022-06-28",
     "Content-Type": "application/json",
 }
@@ -20,7 +21,7 @@ def write_to_file(db_id: str):
 def create_minifig_database():
     data = {
         "parent": {"type": "page_id", "page_id": PAGE_ID},
-        "title": [{"type": "text", "text": {"content": "Minifigs", "link": None}}],
+        "title": [{"type": "text", "text": {"content": "Minifigs DB", "link": None}}],
         "properties": MINIFIG_MINIMAL_SCHEMA,
     }
 

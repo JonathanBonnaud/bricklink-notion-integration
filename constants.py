@@ -21,6 +21,9 @@ CATEGORY_CONFIG = {
     "hfw": {
         "cat_id": "1227",
     },
+    "col": {
+        "cat_id": "746",
+    },
 }
 
 
@@ -30,4 +33,5 @@ CATEGORY_MAPPING = {
     "sh": "Super Heroes",
     "avt": "Avatar",
     "hfw": "Horizon",
+    "col": "Collectible Minifigures",
 }

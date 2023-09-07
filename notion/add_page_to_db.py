@@ -1,31 +1,18 @@
 import argparse
 import json
-import sqlite3
 
-import numpy as np
 import pandas as pd
 import requests
 from tqdm import tqdm
 
 from notion.private_secrets import NOTION_LEGO_COLLECTION_SECRET
-from constants import CATEGORY_MAPPING
+from helpers_sqlite import read_minifig_database
 
 HEADERS = {
     "Authorization": f"Bearer {NOTION_LEGO_COLLECTION_SECRET}",
     "Notion-Version": "2022-06-28",
     "Content-Type": "application/json",
 }
-
-
-def read_minifig_database(category: str) -> pd.DataFrame:
-    where = f"WHERE category = '{CATEGORY_MAPPING[category]}'" if category else ""
-
-    conn = sqlite3.connect("data/lego.db")
-    df = pd.read_sql_query(f"SELECT * FROM minifigs {where}", conn)
-    df["avg_price_pln"].fillna(0, inplace=True)
-
-    print(f"Read {df.shape[0]} minifigs from database")
-    return df
 
 
 def read_db_id_from_file() -> str:
