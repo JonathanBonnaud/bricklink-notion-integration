@@ -24,7 +24,7 @@ def sql_database():
                 avg_price_eur    REAL NULL,
                 bricklink        TEXT NOT NULL,
                 release_year     INTEGER NULL,
-                UNIQUE(id) ON CONFLICT REPLACE
+                UNIQUE(id) ON CONFLICT IGNORE
                 );"""
     )  # Creates the table
     conn.commit()  # Commits the entries to the database
@@ -51,7 +51,7 @@ def sql_database():
                 avg_price_eur    REAL NULL,
                 bricklink        TEXT NOT NULL,
                 release_year     INTEGER NULL,
-                UNIQUE(id) ON CONFLICT REPLACE
+                UNIQUE(id) ON CONFLICT IGNORE
                 );"""
     )
     conn.commit()
@@ -83,12 +83,17 @@ def insert_minifig(minifig_dict: dict):
     if df.shape[0] == 0:
         cursor.execute("INSERT INTO minifigs VALUES (?,?,?,?,?,?,?,?,?,?,?)", params)
     else:
+        avg_price_raw = (
+            f"'{minifig_dict['avg_price_raw']}'"
+            if minifig_dict["avg_price_raw"]
+            else "NULL"
+        )
         cursor.execute(
             f"""UPDATE minifigs 
             SET appears_in='{minifig_dict['appears_in']}', 
-            avg_price_raw='{minifig_dict['avg_price_raw']}', 
-            avg_price_pln={minifig_dict['avg_price_pln'] or 'NULL'},
-            avg_price_eur={minifig_dict['avg_price_eur'] or 'NULL'}
+            avg_price_raw={avg_price_raw}, 
+            avg_price_pln={minifig_dict['avg_price_pln'] or "NULL"},
+            avg_price_eur={minifig_dict['avg_price_eur'] or "NULL"}
             WHERE id='{minifig_dict['id']}'
             """
         )

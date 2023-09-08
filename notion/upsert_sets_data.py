@@ -1,30 +1,22 @@
+import pandas as pd
 from notion_client import Client
-from notion.private_secrets import NOTION_LEGO_COLLECTION_SECRET, NOTION_JONATHAN_SECRET
+from notion.private_secrets import NOTION_JONATHAN_SECRET
 
 from tqdm import tqdm
-from notion_client.helpers import iterate_paginated_api, collect_paginated_api
 from notion_client import APIErrorCode, APIResponseError
 from sqlite import insert_notion_mapping
 import argparse
-from helpers_sqlite import read_minifig_database, get_page_id_from_sqlite, get_bl_ids_from_sqlite
+from helpers_sqlite import read_sets_database, get_page_id_from_sqlite, get_bl_ids_from_sqlite
 
 notion = Client(auth=NOTION_JONATHAN_SECRET)
 
 
 def read_db_id_from_file() -> str:
-    with open(f"notion/database_id.txt", "r") as file:
+    with open(f"notion/sets_database_id.txt", "r") as file:
         return str(file.read())
 
 
-def main(row):
-    db_id = read_db_id_from_file()
-
-    try:
-        assert row["avg_price_pln"] != 0
-        avg_price_pln = float(row["avg_price_pln"])
-    except AssertionError:
-        avg_price_pln = None
-
+def upsert_set_page(row: pd.Series, db_id: str):
     data = {
         "parent": {"database_id": db_id},
         "properties": {
@@ -39,11 +31,18 @@ def main(row):
             },
             "BrickLink": {"url": row["bricklink"]},
             "Avg price raw": {
-                "rich_text": [{"text": {"content": row["avg_price_raw"] or ""}}]  # FIXME: normalize before inserting to sqlite (currently "" and None)
+                "rich_text": [{"text": {"content": row["avg_price_raw"] or ""}}]
             },
-            "Avg price PLN": {"number": avg_price_pln},
+            "Avg price PLN": {"number": row["avg_price_pln"]},
+            "Avg price EUR": {"number": row["avg_price_eur"]},
             "Release Year": {"number": row["release_year"]},
-            "Appears In": {"rich_text": [{"text": {"content": row["appears_in"]}}]},
+            "Minifigs Included": {
+                "relation": [
+                    # {
+                    #     "id": ""
+                    # }
+                ],
+            }
         },
     }
     page_id = get_page_id_from_sqlite(row["id"])
@@ -64,24 +63,34 @@ if __name__ == '__main__':
         "category", nargs="?", help="category of minifigs to send", type=str
     )
     parser.add_argument("--insert", help="Only execute inserts of new", action="store_true")
+    parser.add_argument("--update", help="Only execute update of existing", action="store_true")
     args = parser.parse_args()
     category = args.category
-    print(f"Sending minifigs for category: {category or 'all'}")
+    print(f"Sending sets for category: {category or 'all'}")
 
     if args.insert:
         bl_ids_df = get_bl_ids_from_sqlite()
-        minifig_df = read_minifig_database(category)
+        minifig_df = read_sets_database(category)
         df = minifig_df[~minifig_df["id"].isin(bl_ids_df["bl_id"])]
+    elif args.update:
+        bl_ids_df = get_bl_ids_from_sqlite()
+        minifig_df = read_sets_database(category)
+        df = minifig_df[minifig_df["id"].isin(bl_ids_df["bl_id"])]
     else:
-        df = read_minifig_database(category)
+        df = read_sets_database(category)
 
-    print(f"Number of minifigs to process: {df.shape[0]}")
+    print(f"Number of sets to process: {df.shape[0]}")
 
     inserted = 0
     updated = 0
 
+    db_id = read_db_id_from_file()
+
+    # Insert most recent first
+    df = df.sort_values(by=['release_year', 'id'], ascending=False)
+
     for _, df_row in tqdm(df.iterrows(), total=df.shape[0]):
-        inserted_or_updated = main(df_row)
+        inserted_or_updated = upsert_set_page(df_row, db_id)
         if inserted_or_updated == 2:
             inserted += 1
         elif inserted_or_updated == 1:

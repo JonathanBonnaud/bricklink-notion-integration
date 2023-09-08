@@ -66,8 +66,9 @@ def process_tsv_file(type_val: str, cat_id: int):
     df["sub_category"] = df.agg(
         lambda x: " / ".join(x["category"].split(" / ")[1:]), axis=1
     )
+    df.loc[df["sub_category"] == "", "release_year"] = np.NaN
     df["category"] = df["category"].str.split(" / ").str[0].str.strip()
-    df[df["release_year"] == "?"] = np.NaN
+    df.loc[df["release_year"] == "?", "release_year"] = np.NaN
 
     return df
 
