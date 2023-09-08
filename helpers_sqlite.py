@@ -9,9 +9,18 @@ def read_minifig_database(category: Optional[str]) -> pd.DataFrame:
 
     conn = sqlite3.connect("data/lego.db")
     df = pd.read_sql_query(f"SELECT * FROM minifigs {where}", conn)
-    df["avg_price_pln"].fillna(0, inplace=True)
 
     print(f"Read {df.shape[0]} minifigs from database")
+    return df
+
+
+def read_sets_database(category: Optional[str]) -> pd.DataFrame:
+    where = f"WHERE category = '{CATEGORY_MAPPING[category]}'" if category else ""
+
+    conn = sqlite3.connect("data/lego.db")
+    df = pd.read_sql_query(f"SELECT * FROM sets {where}", conn)
+
+    print(f"Read {df.shape[0]} sets from database")
     return df
 
 

@@ -54,4 +54,4 @@ if __name__ == "__main__":
             break  # exit `while` loop
 
     # Finally write all ids to file
-    write_to_file(args.type, args.category, list_all)
+    write_to_file(args.type, args.category, list_all)  # TODO: instead write to table bl_ids[type, category, id]
