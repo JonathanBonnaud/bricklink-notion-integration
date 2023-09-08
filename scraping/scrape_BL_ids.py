@@ -7,12 +7,12 @@ from lxml import etree
 from constants import HEADERS, CATEGORY_CONFIG
 
 
-def beautifulsoup_parse(category: str, pg: int):
+def beautifulsoup_parse(bl_type: str, category: str, pg: int):
     print(f"Scraping page {pg}")
 
     cat_id = CATEGORY_CONFIG[category]["cat_id"]
     page = requests.get(
-        f"https://www.bricklink.com/catalogList.asp?pg={pg}&catString={cat_id}&catType=M",
+        f"https://www.bricklink.com/catalogList.asp?pg={pg}&catString={cat_id}&catType={bl_type}",
         headers=HEADERS,
     )
 
@@ -26,16 +26,19 @@ def beautifulsoup_parse(category: str, pg: int):
     return minifig_list
 
 
-def write_to_file(category: str, ids: list):
-    with open(f"bl_fig_list/{category}_minifig_ids.json", "w") as file:
+def write_to_file(item_type: str, category: str, ids: list):
+    with open(f"BL_list/{category}_{item_type}_ids.json", "w") as file:
         file.write(str(ids).replace("'", '"'))
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("category", help="category of minifigs to scrape", type=str)
+    parser.add_argument("category", help="category to scrape", type=str)
+    parser.add_argument("type", choices=['minifigs', 'sets'], help="type to scrape", type=str)
     args = parser.parse_args()
     print(f"Scraping category: {args.category}")
+
+    bl_type = "M" if args.type == "minifigs" else "S"
 
     page_number = 0
     list_all = []
@@ -43,7 +46,7 @@ if __name__ == "__main__":
     while True:
         try:
             page_number += 1
-            page_minifig_ids_list = beautifulsoup_parse(args.category, page_number)
+            page_minifig_ids_list = beautifulsoup_parse(bl_type, args.category, page_number)
             assert page_minifig_ids_list[0] not in list_all
             list_all.extend(page_minifig_ids_list)
         except Exception as ex:
@@ -51,4 +54,4 @@ if __name__ == "__main__":
             break  # exit `while` loop
 
     # Finally write all ids to file
-    write_to_file(args.category, list_all)
+    write_to_file(args.type, args.category, list_all)
