@@ -8,30 +8,26 @@ HEADERS = {
 CATEGORY_CONFIG = {
     "sw": {
         "cat_id": "65",
+        "name": "Star Wars",
     },
     "sh": {
         "cat_id": "768",
+        "name": "Super Heroes",
     },
     "avt": {
         "cat_id": "1236",
+        "name": "Avatar",
     },
     "hp": {
         "cat_id": "227",
+        "name": "Harry Potter",
     },
     "hfw": {
         "cat_id": "1227",
+        "name": "Horizon",
     },
     "col": {
         "cat_id": "746",
+        "name": "Collectible Minifigures",
     },
-}
-
-
-CATEGORY_MAPPING = {
-    "sw": "Star Wars",
-    "hp": "Harry Potter",
-    "sh": "Super Heroes",
-    "avt": "Avatar",
-    "hfw": "Horizon",
-    "col": "Collectible Minifigures",
 }

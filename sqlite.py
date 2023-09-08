@@ -1,6 +1,6 @@
 import sqlite3
-import pandas as pd
 
+import pandas as pd
 
 """
 SQLite documentation: https://docs.python.org/3/library/sqlite3.html
@@ -10,51 +10,75 @@ https://www.sqlite.org/draft/lang_UPSERT.html
 
 
 def sql_database():
-    conn = sqlite3.connect('data/lego.db')  # Opens Connection to SQLite database file.
-    conn.execute("""CREATE TABLE IF NOT EXISTS minifigs
+    conn = sqlite3.connect("data/lego.db")  # Opens Connection to SQLite database file.
+    conn.execute(
+        """CREATE TABLE IF NOT EXISTS minifigs
                 (id              TEXT NOT NULL,
                 name             TEXT NOT NULL,
                 category         TEXT NOT NULL,
-                sub_category     TEXT,
+                sub_category     TEXT NULL,
                 image            TEXT NOT NULL,
-                appears_in       BLOB NOT NULL,
+                appears_in       BLOB NULL,
                 avg_price_raw    TEXT NULL,
                 avg_price_pln    REAL NULL,
                 avg_price_eur    REAL NULL,
                 bricklink        TEXT NOT NULL,
                 release_year     INTEGER NULL,
                 UNIQUE(id) ON CONFLICT REPLACE
-                );""")  # Creates the table
+                );"""
+    )  # Creates the table
     conn.commit()  # Commits the entries to the database
 
-    conn.execute("""CREATE TABLE IF NOT EXISTS notion_mapping
+    conn.execute(
+        """CREATE TABLE IF NOT EXISTS notion_mapping
                 (page_id              TEXT NOT NULL,
                 bl_id             TEXT NOT NULL,
                 UNIQUE(page_id, bl_id) ON CONFLICT IGNORE
-                );""")  # Creates the table
-    conn.commit()  # Commits the entries to the database
+                );"""
+    )
+    conn.commit()
+
+    conn.execute(
+        """CREATE TABLE IF NOT EXISTS sets
+                (id              TEXT NOT NULL,
+                name             TEXT NOT NULL,
+                category         TEXT NOT NULL,
+                sub_category     TEXT,
+                image            TEXT NOT NULL,
+                minifigs_included       BLOB NULL,
+                avg_price_raw    TEXT NULL,
+                avg_price_pln    REAL NULL,
+                avg_price_eur    REAL NULL,
+                bricklink        TEXT NOT NULL,
+                release_year     INTEGER NULL,
+                UNIQUE(id) ON CONFLICT REPLACE
+                );"""
+    )
+    conn.commit()
 
     conn.close()
 
 
 def insert_minifig(minifig_dict: dict):
-    conn = sqlite3.connect('data/lego.db')
+    conn = sqlite3.connect("data/lego.db")
     cursor = conn.cursor()
     params = [
-        minifig_dict['id'],
-        minifig_dict['name'],
-        minifig_dict['category'],
-        minifig_dict['sub_category'],
-        minifig_dict['image'],
-        minifig_dict['appears_in'],
-        minifig_dict['avg_price_raw'],
-        minifig_dict['avg_price_pln'],
-        minifig_dict['avg_price_eur'],
-        minifig_dict['bricklink'],
-        minifig_dict['release_year']
+        minifig_dict["id"],
+        minifig_dict["name"],
+        minifig_dict["category"],
+        minifig_dict["sub_category"],
+        minifig_dict["image"],
+        minifig_dict["appears_in"],
+        minifig_dict["avg_price_raw"],
+        minifig_dict["avg_price_pln"],
+        minifig_dict["avg_price_eur"],
+        minifig_dict["bricklink"],
+        minifig_dict["release_year"],
     ]
 
-    df = pd.read_sql_query(f"SELECT * FROM minifigs WHERE id = '{minifig_dict['id']}'", conn)
+    df = pd.read_sql_query(
+        f"SELECT * FROM minifigs WHERE id = '{minifig_dict['id']}'", conn
+    )
 
     if df.shape[0] == 0:
         cursor.execute("INSERT INTO minifigs VALUES (?,?,?,?,?,?,?,?,?,?,?)", params)
@@ -66,20 +90,21 @@ def insert_minifig(minifig_dict: dict):
             avg_price_pln={minifig_dict['avg_price_pln'] or 'NULL'},
             avg_price_eur={minifig_dict['avg_price_eur'] or 'NULL'}
             WHERE id='{minifig_dict['id']}'
-            """)
+            """
+        )
     conn.commit()
-    print('Minifig saved to db')
+    print("Minifig saved to db")
     conn.close()
 
 
 def insert_notion_mapping(page_id: str, bl_id: str):
-    conn = sqlite3.connect('data/lego.db')
+    conn = sqlite3.connect("data/lego.db")
     cursor = conn.cursor()
     cursor.execute("INSERT INTO notion_mapping VALUES (?,?)", (page_id, bl_id))
     conn.commit()
     conn.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     """Execute to create the database and table"""
     sql_database()

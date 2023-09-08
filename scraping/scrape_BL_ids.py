@@ -33,7 +33,7 @@ def write_to_file(item_type: str, category: str, ids: list):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("category", help="category to scrape", type=str)
+    parser.add_argument("category", choices=CATEGORY_CONFIG.keys(), help="category of minifigs to scrape", type=str)
     parser.add_argument("type", choices=['minifigs', 'sets'], help="type to scrape", type=str)
     args = parser.parse_args()
     print(f"Scraping category: {args.category}")
