@@ -33,6 +33,7 @@ def sql_database():
         """CREATE TABLE IF NOT EXISTS notion_mapping
                 (page_id              TEXT NOT NULL,
                 bl_id             TEXT NOT NULL,
+                account_name             TEXT NOT NULL,
                 UNIQUE(page_id, bl_id) ON CONFLICT IGNORE
                 );"""
     )
@@ -105,10 +106,12 @@ def insert_minifig(minifig_dict: dict):
     conn.close()
 
 
-def insert_notion_mapping(page_id: str, bl_id: str):
+def insert_notion_mapping(page_id: str, bl_id: str, account_name: str):
     conn = sqlite3.connect("data/lego.db")
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO notion_mapping VALUES (?,?)", (page_id, bl_id))
+    cursor.execute(
+        "INSERT INTO notion_mapping VALUES (?,?,?)", (page_id, bl_id, account_name)
+    )
     conn.commit()
     conn.close()
 

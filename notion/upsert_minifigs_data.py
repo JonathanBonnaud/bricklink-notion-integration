@@ -3,7 +3,6 @@ import argparse
 import numpy as np
 import pandas as pd
 from notion_client import APIResponseError
-from notion_client import Client
 from tqdm import tqdm
 
 from helpers_sqlite import (
@@ -13,14 +12,14 @@ from helpers_sqlite import (
     read_minifigs_with_appears_in,
     read_minifigs_with_avg_price,
 )
-from notion.private_secrets import NOTION_JONATHAN_SECRET
+from notion.helpers_notion import account_setup
 from sqlite import insert_notion_mapping
 
-notion = Client(auth=NOTION_JONATHAN_SECRET)
+NOTION, PREFIX, _ = account_setup()
 
 
 def read_db_id_from_file() -> str:
-    with open(f"notion/minifigs_database_id.txt", "r") as file:
+    with open(f"notion/files/{PREFIX}_minifigs_database_id.txt", "r") as file:
         return str(file.read())
 
 
@@ -28,7 +27,7 @@ def get_relations(appears_in: str) -> list:
     relations = []
     try:
         for set_id in appears_in.split(","):
-            if page_id := get_page_id_from_sqlite(set_id):
+            if page_id := get_page_id_from_sqlite(set_id, PREFIX):
                 relations.append({"id": page_id})
     except AttributeError:  # appears_in is None
         pass
@@ -70,15 +69,15 @@ def upsert_minifig_page(row: pd.Series, db_id: str):
             "Appears In": {"relation": get_relations(row["appears_in"])},
         },
     }
-    page_id = get_page_id_from_sqlite(row["id"])
+    page_id = get_page_id_from_sqlite(row["id"], PREFIX)
 
     try:
-        page = notion.pages.retrieve(page_id)
-        notion.pages.update(page_id=page["id"], **data)
+        page = NOTION.pages.retrieve(page_id)
+        NOTION.pages.update(page_id=page["id"], **data)
         return 1  # UPDATED
     except APIResponseError:
-        page_created = notion.pages.create(database_id=db_id, **data)
-        insert_notion_mapping(page_created["id"], row["id"])
+        page_created = NOTION.pages.create(database_id=db_id, **data)
+        insert_notion_mapping(page_created["id"], row["id"], PREFIX)
         return 2  # INSERTED
 
 
@@ -104,11 +103,11 @@ if __name__ == "__main__":
     print(f"Sending minifigs for category: {category or 'all'}")
 
     if args.insert:
-        bl_ids_df = get_bl_ids_from_sqlite()
+        bl_ids_df = get_bl_ids_from_sqlite(PREFIX)
         minifig_df = read_minifig_database(category)
         df = minifig_df[~minifig_df["id"].isin(bl_ids_df["bl_id"])]
     elif args.update:
-        bl_ids_df = get_bl_ids_from_sqlite()
+        bl_ids_df = get_bl_ids_from_sqlite(PREFIX)
         if args.avg_price:
             minifig_df = read_minifigs_with_avg_price(category)
         elif args.appears_in:

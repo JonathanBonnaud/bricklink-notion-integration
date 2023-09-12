@@ -2,7 +2,6 @@ import argparse
 
 import pandas as pd
 from notion_client import APIResponseError
-from notion_client import Client
 from tqdm import tqdm
 
 from helpers_sqlite import (
@@ -10,15 +9,14 @@ from helpers_sqlite import (
     get_page_id_from_sqlite,
     get_bl_ids_from_sqlite,
 )
-from notion.private_secrets import NOTION_JONATHAN_SECRET
+from notion.helpers_notion import account_setup
 from sqlite import insert_notion_mapping
-from helpers import Bcolors
 
-notion = Client(auth=NOTION_JONATHAN_SECRET)
+NOTION, PREFIX, _ = account_setup()
 
 
 def read_db_id_from_file() -> str:
-    with open(f"notion/sets_database_id.txt", "r") as file:
+    with open(f"notion/files/{PREFIX}_sets_database_id.txt", "r") as file:
         return str(file.read())
 
 
@@ -52,15 +50,15 @@ def upsert_set_page(row: pd.Series, db_id: str):
             # },
         },
     }
-    page_id = get_page_id_from_sqlite(row["id"])
+    page_id = get_page_id_from_sqlite(row["id"], PREFIX)
 
     try:
-        page = notion.pages.retrieve(page_id)
-        notion.pages.update(page_id=page["id"], **data)
+        page = NOTION.pages.retrieve(page_id)
+        NOTION.pages.update(page_id=page["id"], **data)
         return 1  # UPDATED
     except APIResponseError:
-        page_created = notion.pages.create(database_id=db_id, **data)
-        insert_notion_mapping(page_created["id"], row["id"])
+        page_created = NOTION.pages.create(database_id=db_id, **data)
+        insert_notion_mapping(page_created["id"], row["id"], PREFIX)
         return 2  # INSERTED
 
 
@@ -80,11 +78,11 @@ if __name__ == "__main__":
     print(f"Sending sets for category: {category or 'all'}")
 
     if args.insert:
-        bl_ids_df = get_bl_ids_from_sqlite()
+        bl_ids_df = get_bl_ids_from_sqlite(PREFIX)
         sets_df = read_sets_database(category)
         df = sets_df[~sets_df["id"].isin(bl_ids_df["bl_id"])]
     elif args.update:
-        bl_ids_df = get_bl_ids_from_sqlite()
+        bl_ids_df = get_bl_ids_from_sqlite(PREFIX)
         sets_df = read_sets_database(category)
         df = sets_df[sets_df["id"].isin(bl_ids_df["bl_id"])]
     else:

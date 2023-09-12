@@ -62,10 +62,16 @@ def read_minifigs_with_appears_in(category: str) -> pd.DataFrame:
     return df
 
 
-def get_page_id_from_sqlite(bl_id: str) -> Optional[str]:
+"""
+Read notion_mapping table
+"""
+
+
+def get_page_id_from_sqlite(bl_id: str, account_name: str) -> Optional[str]:
     conn = sqlite3.connect("data/lego.db")
     df = pd.read_sql_query(
-        f"SELECT * FROM notion_mapping WHERE bl_id = '{bl_id}'", conn
+        f"SELECT * FROM notion_mapping WHERE bl_id = '{bl_id}' AND account_name = '{account_name}'",
+        conn,
     )
     # print(f"Read {df.shape[0]} mapping from database")
     try:
@@ -74,6 +80,8 @@ def get_page_id_from_sqlite(bl_id: str) -> Optional[str]:
         return None
 
 
-def get_bl_ids_from_sqlite() -> pd.DataFrame:
+def get_bl_ids_from_sqlite(account_name: str) -> pd.DataFrame:
     conn = sqlite3.connect("data/lego.db")
-    return pd.read_sql_query(f"SELECT bl_id FROM notion_mapping", conn)
+    return pd.read_sql_query(
+        f"SELECT bl_id FROM notion_mapping WHERE account_name = '{account_name}'", conn
+    )

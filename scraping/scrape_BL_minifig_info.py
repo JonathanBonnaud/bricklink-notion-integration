@@ -57,7 +57,7 @@ def get_price(minifig_id: str, proxy: str = None) -> Optional[str]:
         return ""
 
 
-def get_appears_in(minifig_id: str) -> str:
+def get_appears_in(minifig_id: str) -> Optional[str]:
     print("Scraping Appears In...")
     page = requests.get(
         f"https://www.bricklink.com/catalogItemIn.asp?M={minifig_id}&in=S",
@@ -68,15 +68,19 @@ def get_appears_in(minifig_id: str) -> str:
 
     xpath = '//*[@id="id-main-legacy-table"]/tr/td/table[2]/tr/td/center/table/tr/td[3]/font/a[1]/text()'
     set_list = html.xpath(xpath)
-    return ",".join(set_list)
+    if appears_in_str := ",".join(set_list):
+        return appears_in_str
+    else:
+        print(f"{Bcolors.WARNING}Warning: No Appears In found{Bcolors.ENDC}")
+        return None
 
 
 def beautifulsoup_parse(
     minifig_id: str, proxy: str = None, scrape_all: bool = False
-) -> dict:
-    print(f"Scraping page for minifig {minifig_id}...")
+) -> None:
     url = f"https://www.bricklink.com/v2/catalog/catalogitem.page?M={minifig_id}#T=P"
-    # print(url)
+    print(f"Scraping page for minifig {minifig_id}... [{url}]")
+
     page = requests.get(url, headers=HEADERS)
     soup = BeautifulSoup(page.text, "html.parser")
     html = etree.HTML(str(soup))
@@ -157,7 +161,7 @@ def beautifulsoup_parse(
     }
     # Write to sqlite db
     insert_minifig(d)
-    return d
+    print("\n========================================\n")
 
 
 if __name__ == "__main__":
@@ -195,12 +199,12 @@ if __name__ == "__main__":
         proxy = None
     batch_size = 10
     for batch in tqdm(range(0, len(minifig_ids), batch_size)):
-        print("Sleeping for 60 seconds...")
-        sleep(60)
+        print("Sleeping for 5 seconds...")
+        sleep(5)
         print(f"Batch {int((batch/batch_size)+1)}")
         for minifig_id in minifig_ids[batch : batch + batch_size]:
             try:
-                minifig_dict = beautifulsoup_parse(minifig_id, proxy, args.scrape_all)
+                beautifulsoup_parse(minifig_id, proxy, args.scrape_all)
             except (ProxyError, AvgPriceNotFound, ConnectTimeout, SSLError) as e:
                 print(f"Error '{e}'\n")
                 if args.with_proxy:
