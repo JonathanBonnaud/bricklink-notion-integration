@@ -1,12 +1,18 @@
-import pandas as pd
-from notion_client import Client
-from notion.private_secrets import NOTION_JONATHAN_SECRET
-
-from tqdm import tqdm
-from notion_client import APIErrorCode, APIResponseError
-from sqlite import insert_notion_mapping
 import argparse
-from helpers_sqlite import read_sets_database, get_page_id_from_sqlite, get_bl_ids_from_sqlite
+
+import pandas as pd
+from notion_client import APIResponseError
+from notion_client import Client
+from tqdm import tqdm
+
+from helpers_sqlite import (
+    read_sets_database,
+    get_page_id_from_sqlite,
+    get_bl_ids_from_sqlite,
+)
+from notion.private_secrets import NOTION_JONATHAN_SECRET
+from sqlite import insert_notion_mapping
+from helpers import Bcolors
 
 notion = Client(auth=NOTION_JONATHAN_SECRET)
 
@@ -36,13 +42,14 @@ def upsert_set_page(row: pd.Series, db_id: str):
             "Avg price PLN": {"number": row["avg_price_pln"]},
             "Avg price EUR": {"number": row["avg_price_eur"]},
             "Release Year": {"number": row["release_year"]},
-            "Minifigs Included": {
-                "relation": [
-                    # {
-                    #     "id": ""
-                    # }
-                ],
-            }
+            # # /!\ Need to be excluded not to update 'Minifigs Included' with empty values /!\
+            # "Minifigs Included": {
+            #     "relation": [
+            #         # {
+            #         #     "id": ""
+            #         # }
+            #     ],
+            # },
         },
     }
     page_id = get_page_id_from_sqlite(row["id"])
@@ -57,25 +64,29 @@ def upsert_set_page(row: pd.Series, db_id: str):
         return 2  # INSERTED
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "category", nargs="?", help="category of minifigs to send", type=str
     )
-    parser.add_argument("--insert", help="Only execute inserts of new", action="store_true")
-    parser.add_argument("--update", help="Only execute update of existing", action="store_true")
+    parser.add_argument(
+        "--insert", help="Only execute inserts of new", action="store_true"
+    )
+    parser.add_argument(
+        "--update", help="Only execute update of existing", action="store_true"
+    )
     args = parser.parse_args()
     category = args.category
     print(f"Sending sets for category: {category or 'all'}")
 
     if args.insert:
         bl_ids_df = get_bl_ids_from_sqlite()
-        minifig_df = read_sets_database(category)
-        df = minifig_df[~minifig_df["id"].isin(bl_ids_df["bl_id"])]
+        sets_df = read_sets_database(category)
+        df = sets_df[~sets_df["id"].isin(bl_ids_df["bl_id"])]
     elif args.update:
         bl_ids_df = get_bl_ids_from_sqlite()
-        minifig_df = read_sets_database(category)
-        df = minifig_df[minifig_df["id"].isin(bl_ids_df["bl_id"])]
+        sets_df = read_sets_database(category)
+        df = sets_df[sets_df["id"].isin(bl_ids_df["bl_id"])]
     else:
         df = read_sets_database(category)
 
@@ -87,7 +98,7 @@ if __name__ == '__main__':
     db_id = read_db_id_from_file()
 
     # Insert most recent first
-    df = df.sort_values(by=['release_year', 'id'], ascending=False)
+    df = df.sort_values(by=["release_year", "id"], ascending=False)
 
     for _, df_row in tqdm(df.iterrows(), total=df.shape[0]):
         inserted_or_updated = upsert_set_page(df_row, db_id)

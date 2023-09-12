@@ -88,9 +88,12 @@ def insert_minifig(minifig_dict: dict):
             if minifig_dict["avg_price_raw"]
             else "NULL"
         )
+        appears_in = (
+            f"'{minifig_dict['appears_in']}'" if minifig_dict["appears_in"] else "NULL"
+        )
         cursor.execute(
             f"""UPDATE minifigs 
-            SET appears_in='{minifig_dict['appears_in']}', 
+            SET appears_in={appears_in}, 
             avg_price_raw={avg_price_raw}, 
             avg_price_pln={minifig_dict['avg_price_pln'] or "NULL"},
             avg_price_eur={minifig_dict['avg_price_eur'] or "NULL"}
