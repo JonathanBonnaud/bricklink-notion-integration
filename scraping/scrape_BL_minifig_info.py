@@ -13,7 +13,11 @@ from tqdm import tqdm
 from constants import HEADERS, CATEGORY_CONFIG
 from exceptions import CategoryNotFound, NameNotFound, AvgPriceNotFound
 from helpers import Bcolors, read_minifig_ids_from_file, get_proxies
-from helpers_sqlite import read_minifigs_with_avg_price, read_minifigs_with_appears_in
+from helpers_sqlite import (
+    read_minifigs_with_avg_price,
+    read_minifigs_with_appears_in,
+    read_minifigs_from_collec,
+)
 from sqlite import insert_minifig
 
 cc = CurrencyConverter()
@@ -179,6 +183,11 @@ if __name__ == "__main__":
         help="Focus on getting missing appears_in",
         action="store_true",
     )
+    parser.add_argument(
+        "--get-collec",
+        help="Focus on getting missing values from the user's collection",
+        action="store_true",
+    )
     args = parser.parse_args()
     print(f"Scraping minifig info for category: {args.category}\n")
 
@@ -188,7 +197,12 @@ if __name__ == "__main__":
         # Get list of ids from db to scrape only new ones
         db_ids = read_minifigs_with_avg_price(args.category)["id"].values
 
-    minifig_ids = list(set(read_minifig_ids_from_file(args.category)) - set(db_ids))
+    if args.get_collec:
+        print("Not implemented yet.")
+        exit()
+        minifig_ids = read_minifigs_from_collec(args.category)["id"].values
+    else:
+        minifig_ids = list(set(read_minifig_ids_from_file(args.category)) - set(db_ids))
     minifig_ids.sort(reverse=True)
     print(f"Number of minifigs to scrape: {len(minifig_ids)}\n")
 

@@ -1,6 +1,7 @@
 import sqlite3
 from typing import Optional
 
+import aiosqlite
 import pandas as pd
 
 from constants import CATEGORY_CONFIG
@@ -62,6 +63,10 @@ def read_minifigs_with_appears_in(category: str) -> pd.DataFrame:
     return df
 
 
+def read_minifigs_from_collec(category: str, account_name: str) -> pd.DataFrame:
+    pass
+
+
 """
 Read notion_mapping table
 """
@@ -85,3 +90,37 @@ def get_bl_ids_from_sqlite(account_name: str) -> pd.DataFrame:
     return pd.read_sql_query(
         f"SELECT bl_id FROM notion_mapping WHERE account_name = '{account_name}'", conn
     )
+
+
+"""
+Async methods
+"""
+
+
+async def async_get_page_id_from_sqlite(bl_id: str, account_name: str) -> Optional[str]:
+    async with aiosqlite.connect("data/lego.db") as conn:
+        async with conn.execute(
+            f"SELECT * FROM notion_mapping WHERE bl_id = '{bl_id}' AND account_name = '{account_name}'"
+        ) as cursor:
+            try:
+                rows = await cursor.fetchone()
+                return str(rows[0])
+            except (TypeError, IndexError):
+                return None
+
+
+async def async_insert_notion_mapping(page_id: str, bl_id: str, account_name: str):
+    async with aiosqlite.connect("data/lego.db") as conn:
+        await conn.execute(
+            "INSERT INTO notion_mapping VALUES (?,?,?)", (page_id, bl_id, account_name)
+        )
+
+
+def insert_to_sqlite(table_name: str, df: pd.DataFrame):
+    try:
+        assert pd.Series(df["id"]).is_unique
+        conn = sqlite3.connect("data/lego.db")
+        rows_affected = df.to_sql(table_name, conn, if_exists="append", index=False)
+        print(f"Data inserted to sqlite: {rows_affected}")
+    except AssertionError:
+        print("Cannot insert to DB: IDs are not unique")

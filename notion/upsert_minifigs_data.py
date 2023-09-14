@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from notion_client import APIResponseError
 from tqdm import tqdm
-
+import time
 from helpers_sqlite import (
     read_minifig_database,
     get_page_id_from_sqlite,
@@ -128,11 +128,14 @@ if __name__ == "__main__":
     # Insert most recent first
     df = df.sort_values(by=["release_year", "id"], ascending=False)
 
+    start = time.time()
     for _, df_row in tqdm(df.iterrows(), total=df.shape[0]):
         inserted_or_updated = upsert_minifig_page(df_row, db_id)
         if inserted_or_updated == 2:
             inserted += 1
         elif inserted_or_updated == 1:
             updated += 1
+    end = time.time()
+    print(f"Time elapsed: {end - start}s")
 
     print(f"Inserted: {inserted}, updated: {updated}")
