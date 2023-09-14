@@ -12,10 +12,11 @@ from tqdm import tqdm
 
 from constants import HEADERS, CATEGORY_CONFIG
 from exceptions import CategoryNotFound, NameNotFound, AvgPriceNotFound
-from helpers import Bcolors, read_minifig_ids_from_file, get_proxies
+from helpers import Bcolors, get_proxies
 from helpers_sqlite import (
     read_minifigs_with_avg_price,
     read_minifigs_with_appears_in,
+    read_minifig_database,
     read_minifigs_from_collec,
 )
 from sqlite import insert_minifig
@@ -192,17 +193,19 @@ if __name__ == "__main__":
     print(f"Scraping minifig info for category: {args.category}\n")
 
     if args.get_appears_in:
+        # Get minifigs with appears_in to filer them out
         db_ids = read_minifigs_with_appears_in(args.category)["id"].values
     else:
-        # Get list of ids from db to scrape only new ones
+        # Get minifigs with avg_price to filer them out
         db_ids = read_minifigs_with_avg_price(args.category)["id"].values
 
     if args.get_collec:
         print("Not implemented yet.")
         exit()
-        minifig_ids = read_minifigs_from_collec(args.category)["id"].values
     else:
-        minifig_ids = list(set(read_minifig_ids_from_file(args.category)) - set(db_ids))
+        minifig_ids = list(
+            set(read_minifig_database(args.category)["id"].values) - set(db_ids)
+        )
     minifig_ids.sort(reverse=True)
     print(f"Number of minifigs to scrape: {len(minifig_ids)}\n")
 

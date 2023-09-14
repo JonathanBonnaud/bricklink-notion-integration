@@ -97,7 +97,8 @@ def insert_minifig(minifig_dict: dict):
             SET appears_in={appears_in}, 
             avg_price_raw={avg_price_raw}, 
             avg_price_pln={minifig_dict['avg_price_pln'] or "NULL"},
-            avg_price_eur={minifig_dict['avg_price_eur'] or "NULL"}
+            avg_price_eur={minifig_dict['avg_price_eur'] or "NULL"},
+            release_year={minifig_dict['release_year'] or "NULL"}
             WHERE id='{minifig_dict['id']}'
             """
         )

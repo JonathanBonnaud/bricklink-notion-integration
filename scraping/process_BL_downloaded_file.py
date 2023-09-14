@@ -1,10 +1,10 @@
 import argparse
-import sqlite3
 
 import numpy as np
 import pandas as pd
 
 from constants import CATEGORY_CONFIG
+from helpers_sqlite import insert_to_sqlite
 
 TYPE_CONFIG = {
     "minifigs": {
@@ -71,16 +71,6 @@ def process_tsv_file(type_val: str, cat_id: int):
     df.loc[df["release_year"] == "?", "release_year"] = np.NaN
 
     return df
-
-
-def insert_to_sqlite(table_name: str, df: pd.DataFrame):
-    try:
-        assert pd.Series(df["id"]).is_unique
-        conn = sqlite3.connect("data/lego.db")
-        rows_affected = df.to_sql(table_name, conn, if_exists="append", index=False)
-        print(f"Data inserted to sqlite: {rows_affected}")
-    except AssertionError:
-        print("Cannot insert to DB: IDs are not unique")
 
 
 if __name__ == "__main__":

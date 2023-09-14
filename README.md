@@ -8,13 +8,22 @@ Notion integration with BrickLink data
 
 ## To run the scraper
 
-#### Insert data from downloaded files (Only basic info: without *avg_price* and *appears_in*)
+CATEGORY values: [sw, sh, hp, avt, hfw, col]
 
-`python scraping/process_BL_minifigs_downloaded_file.py`
+TYPE values: [minifigs, sets]
 
-#### Categories: ['sw', 'sh', 'hp', 'avt', 'hfw']
+#### 1. Insert data (Only basic info)
 
-[//]: # (1. `python scraping/scrape_minifig_ids.py CATEGORY`)
+Either automatically scrape lists from BrickLink:
+
+- `python scraping/scrape_BL_minimal.py CATEGORY TYPE`
+
+Or from manually downloaded files (from BL):
+
+- `python scraping/process_BL_minifigs_downloaded_file.py CATEGORY TYPE`
+
+#### 2. Update data (All info)
+
 `python scraping/scrape_minifig_info.py CATEGORY`
 
 ## To insert/update the data into Notion
@@ -31,27 +40,21 @@ or `python notion/create_db.py [minifigs|sets]`
 
 ### Insert or update pages to the database in Notion
 
-`python notion/upsert_minifigs_data.py`
-
-or `python notion/upsert_minifigs_data.py CATEGORY`
-
-or `python notion/upsert_minifigs_data.py CATEGORY --insert`
-
-or `python notion/upsert_minifigs_data.py CATEGORY --update`
+`python notion/async_upsert_minifigs_data.py CATEGORY`
 
 ## Remaining Work To Do
 
 ### In scraping/
 
-- scrape_BL_ids : save ids in sqlite
+- scrape_BL_ids : save ids in sqlite - DONE
     - could even get id, name, category, subcategory
-- then read ids from sqlite to scrape info
+- then read ids from sqlite to scrape info - DONE
+- read data from Notion where owned=True to process this data in priority
 - add to table:  last_scraped_at
 
 ### In notion/
 
 - create async methods to send the data to Notion - DONE
-- read data from Notion where owned=True to process this data in priority
 - add to notion_mapping table: last_updated_at
 
 ### Deployment

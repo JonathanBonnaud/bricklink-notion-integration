@@ -122,5 +122,15 @@ def insert_to_sqlite(table_name: str, df: pd.DataFrame):
         conn = sqlite3.connect("data/lego.db")
         rows_affected = df.to_sql(table_name, conn, if_exists="append", index=False)
         print(f"Data inserted to sqlite: {rows_affected}")
+        conn.close()
     except AssertionError:
         print("Cannot insert to DB: IDs are not unique")
+
+
+def write_to_sql(table_name: str, data: dict) -> int:
+    df = pd.DataFrame(data)
+    conn = sqlite3.connect("data/lego.db")
+    rows_affected = df.to_sql(table_name, conn, if_exists="append", index=False)
+    # print(f"Data inserted to sqlite: {rows_affected}")
+    conn.close()
+    return rows_affected
