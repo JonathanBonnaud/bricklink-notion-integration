@@ -84,21 +84,24 @@ def insert_minifig(minifig_dict: dict):
     if df.shape[0] == 0:
         cursor.execute("INSERT INTO minifigs VALUES (?,?,?,?,?,?,?,?,?,?,?)", params)
     else:
+        db_values = df.iloc[0].to_dict()  # update only if the values are not None
         avg_price_raw = (
             f"'{minifig_dict['avg_price_raw']}'"
             if minifig_dict["avg_price_raw"]
-            else "NULL"
+            else f"'{db_values['avg_price_raw']}'"
         )
         appears_in = (
-            f"'{minifig_dict['appears_in']}'" if minifig_dict["appears_in"] else "NULL"
+            f"'{minifig_dict['appears_in']}'"
+            if minifig_dict["appears_in"]
+            else f"'{db_values['appears_in']}'"
         )
         cursor.execute(
             f"""UPDATE minifigs 
             SET appears_in={appears_in}, 
             avg_price_raw={avg_price_raw}, 
-            avg_price_pln={minifig_dict['avg_price_pln'] or "NULL"},
-            avg_price_eur={minifig_dict['avg_price_eur'] or "NULL"},
-            release_year={minifig_dict['release_year'] or "NULL"}
+            avg_price_pln={minifig_dict['avg_price_pln'] or db_values['avg_price_pln'] or "NULL"},
+            avg_price_eur={minifig_dict['avg_price_eur'] or db_values['avg_price_eur'] or "NULL"},
+            release_year={minifig_dict['release_year'] or db_values['release_year'] or "NULL"}
             WHERE id='{minifig_dict['id']}'
             """
         )

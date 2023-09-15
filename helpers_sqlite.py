@@ -43,7 +43,7 @@ def read_minifigs_with_avg_price(category: str) -> pd.DataFrame:
 
     conn = sqlite3.connect("data/lego.db")
     df = pd.read_sql_query(f"SELECT * FROM minifigs {where}", conn)
-    print(f"Read {df.shape[0]} minifigs from database")
+    print(f"Read {df.shape[0]} minifigs from database (where avg_price not null)")
     return df
 
 
@@ -59,7 +59,7 @@ def read_minifigs_with_appears_in(category: str) -> pd.DataFrame:
 
     conn = sqlite3.connect("data/lego.db")
     df = pd.read_sql_query(f"SELECT * FROM minifigs {where}", conn)
-    print(f"Read {df.shape[0]} minifigs from database")
+    print(f"Read {df.shape[0]} minifigs from database (where appears_in not null)")
     return df
 
 

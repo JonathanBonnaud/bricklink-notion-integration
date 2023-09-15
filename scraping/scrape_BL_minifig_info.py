@@ -31,7 +31,7 @@ def get_price(minifig_id: str, proxy: str = None) -> Optional[str]:
         f"https://www.bricklink.com/catalogPG.asp?M={minifig_id}&ColorID=0",  # cID=Y
         headers=HEADERS,
         proxies=proxies,
-        timeout=10,
+        timeout=20,
     )
     soup = BeautifulSoup(page.text, "html.parser")
     html = etree.HTML(str(soup))
@@ -62,11 +62,14 @@ def get_price(minifig_id: str, proxy: str = None) -> Optional[str]:
         return ""
 
 
-def get_appears_in(minifig_id: str) -> Optional[str]:
+def get_appears_in(minifig_id: str, proxy: str = None) -> Optional[str]:
     print("Scraping Appears In...")
+    proxies = {"https": proxy} if proxy else None
     page = requests.get(
         f"https://www.bricklink.com/catalogItemIn.asp?M={minifig_id}&in=S",
         headers=HEADERS,
+        proxies=proxies,
+        timeout=20,
     )
     soup = BeautifulSoup(page.text, "html.parser")
     html = etree.HTML(str(soup))
@@ -126,7 +129,7 @@ def beautifulsoup_parse(
         print(f"{Bcolors.WARNING}Info: No release year found{Bcolors.ENDC}")
         release_year = None
 
-    avg_price_raw = get_price(minifig_id, proxy)
+    avg_price_raw = get_price(minifig_id, proxy=proxy)
     try:
         avg_price = float(
             avg_price_raw.replace(" ", "")
@@ -151,7 +154,7 @@ def beautifulsoup_parse(
         avg_price_pln = None
         avg_price_eur = None
 
-    appears_in = get_appears_in(minifig_id)
+    appears_in = get_appears_in(minifig_id, proxy=proxy)
 
     d = {
         "id": minifig_id,
@@ -168,6 +171,7 @@ def beautifulsoup_parse(
     }
     # Write to sqlite db
     insert_minifig(d)
+    sleep(5)
     print("\n========================================\n")
 
 
@@ -205,7 +209,6 @@ if __name__ == "__main__":
     else:
         # Get minifigs with avg_price to filer them out
         db_ids = read_minifigs_with_avg_price(args.category)["id"].values
-    print(f"To filter out: {len(db_ids)} minifigs")
 
     if args.from_collec:
         minifig_ids = list(set(read_owned_minifigs(args.category)) - set(db_ids))
@@ -231,8 +234,6 @@ if __name__ == "__main__":
     batch_size = 10
     try:
         for batch in tqdm(range(0, len(minifig_ids), batch_size)):
-            print("Sleeping for 5 seconds...")
-            sleep(5)
             print(f"Batch {int((batch/batch_size)+1)}")
             for minifig_id in minifig_ids[batch : batch + batch_size]:
                 try:
@@ -242,6 +243,8 @@ if __name__ == "__main__":
                     if args.with_proxy:
                         proxy = next(proxies)
                         print(f"\ttrying another proxy... {proxy}")
+            print("Sleeping for 30 seconds...")
+            sleep(30)
     except KeyboardInterrupt:
         print("Interrupted manually")
         pass

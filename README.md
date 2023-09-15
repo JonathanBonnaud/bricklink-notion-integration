@@ -1,6 +1,7 @@
 # bricklink-notion-integration
 
-Notion integration with BrickLink data
+Notion integration with BrickLink data.
+The integration allows you to keep track of your Lego collection in Notion.
 
 ## Set up Database
 
