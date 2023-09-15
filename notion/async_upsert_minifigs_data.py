@@ -2,7 +2,7 @@ import argparse
 
 import numpy as np
 import pandas as pd
-from notion_client import APIResponseError
+from notion_client import APIResponseError, APIErrorCode
 from tqdm.asyncio import tqdm
 import asyncio
 import time
@@ -15,7 +15,7 @@ from helpers_sqlite import (
     async_get_page_id_from_sqlite,
     async_insert_notion_mapping,
 )
-from notion.helpers_notion import async_account_setup
+from notion.helpers_notion import async_account_setup, read_owned_minifigs
 
 NOTION, PREFIX, _ = async_account_setup()
 
@@ -87,10 +87,10 @@ async def upsert_minifig_page(row: pd.Series, db_id: str):
             await notion_update(row["id"], page["id"], data)
             return 1  # UPDATED
         except APIResponseError as e:
-            if e.code == "rate_limited":
+            if e.code == APIErrorCode.RateLimited:
                 print("Rate limited, sleeping for 10 minutes...")
                 await asyncio.sleep(60 * 10)
-            elif e.code == "validation_error":  # page not found
+            elif e.code == APIErrorCode.ValidationError:  # Page not found
                 page_created = await NOTION.pages.create(database_id=db_id, **data)
                 await async_insert_notion_mapping(page_created["id"], row["id"], PREFIX)
                 print(f"Created page for {row['id']}")
@@ -108,17 +108,20 @@ async def main(df: pd.DataFrame, db_id: str):
     ]
     res = await tqdm.gather(*tasks)  # asyncio.gather
     print(
-        f"{sum([a for a in res if a == 1])} updated, {sum([a for a in res if a == 2])} inserted"
+        f"{sum([1 for a in res if a == 1])} updated, {sum([1 for a in res if a == 2])} inserted"
     )
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "category", nargs="?", help="category of minifigs to send", type=str
+        "category", help="category of minifigs to send", type=str  # nargs="?",
     )
     parser.add_argument(
         "--insert", help="Only execute inserts of new", action="store_true"
+    )
+    parser.add_argument(
+        "--update-collec", help="Only execute update of owned", action="store_true"
     )
     parser.add_argument(
         "--update", help="Only execute update of existing", action="store_true"
@@ -137,6 +140,10 @@ if __name__ == "__main__":
         bl_ids_df = get_bl_ids_from_sqlite(PREFIX)
         minifig_df = read_minifig_database(category)
         df = minifig_df[~minifig_df["id"].isin(bl_ids_df["bl_id"])]
+    elif args.update_collec:
+        bl_ids = read_owned_minifigs(category)
+        minifig_df = read_minifig_database(category)
+        df = minifig_df[minifig_df["id"].isin(bl_ids)]
     elif args.update:
         bl_ids_df = get_bl_ids_from_sqlite(PREFIX)
         if args.avg_price:

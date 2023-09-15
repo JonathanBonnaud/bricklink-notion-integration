@@ -1,6 +1,6 @@
 import argparse
 import unicodedata
-from time import sleep
+from time import sleep, time
 from typing import Optional
 
 import requests
@@ -17,8 +17,8 @@ from helpers_sqlite import (
     read_minifigs_with_avg_price,
     read_minifigs_with_appears_in,
     read_minifig_database,
-    read_minifigs_from_collec,
 )
+from notion.helpers_notion import read_owned_minifigs
 from sqlite import insert_minifig
 
 cc = CurrencyConverter()
@@ -90,20 +90,15 @@ def beautifulsoup_parse(
     soup = BeautifulSoup(page.text, "html.parser")
     html = etree.HTML(str(soup))
 
-    name = release_year = category = sub_category = None
+    # Only scrape name, category and sub-category if scrape_all is True
+    # This data is by default extracted on the initial scrape
+    name = category = sub_category = None
     if scrape_all:
         try:
             xpath = '//*[@id="item-name-title"]/text()'
             name = html.xpath(xpath)[0]
         except IndexError:
             raise NameNotFound(f"{Bcolors.FAIL}Warning: No name found{Bcolors.ENDC}")
-
-        try:
-            xpath = '//*[@id="yearReleasedSec"]/text()'
-            release_year = int(html.xpath(xpath)[0])
-        except IndexError:
-            print(f"{Bcolors.WARNING}Info: No release year found{Bcolors.ENDC}")
-            release_year = None
 
         try:
             xpath = '//*[@id="content"]/div/table/tr/td[1]/a[3]/text()'
@@ -120,9 +115,16 @@ def beautifulsoup_parse(
             print(f"{Bcolors.WARNING}Info: No sub-category found{Bcolors.ENDC}")
             sub_category = None
 
+    # Then scrape the missing info
     image_link = f"https://img.bricklink.com/ItemImage/MN/0/{minifig_id}.png"
-
     bl_link = f"https://www.bricklink.com/v2/catalog/catalogitem.page?M={minifig_id}"
+
+    try:
+        xpath = '//*[@id="yearReleasedSec"]/text()'
+        release_year = int(html.xpath(xpath)[0])
+    except IndexError:
+        print(f"{Bcolors.WARNING}Info: No release year found{Bcolors.ENDC}")
+        release_year = None
 
     avg_price_raw = get_price(minifig_id, proxy)
     try:
@@ -185,8 +187,13 @@ if __name__ == "__main__":
         action="store_true",
     )
     parser.add_argument(
-        "--get-collec",
+        "--from-collec",
         help="Focus on getting missing values from the user's collection",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--sort-oldest",
+        help="Scrape minifigs from the oldest to the newest",
         action="store_true",
     )
     args = parser.parse_args()
@@ -198,15 +205,19 @@ if __name__ == "__main__":
     else:
         # Get minifigs with avg_price to filer them out
         db_ids = read_minifigs_with_avg_price(args.category)["id"].values
+    print(f"To filter out: {len(db_ids)} minifigs")
 
-    if args.get_collec:
-        print("Not implemented yet.")
-        exit()
+    if args.from_collec:
+        minifig_ids = list(set(read_owned_minifigs(args.category)) - set(db_ids))
     else:
         minifig_ids = list(
             set(read_minifig_database(args.category)["id"].values) - set(db_ids)
         )
-    minifig_ids.sort(reverse=True)
+
+    if args.sort_oldest:
+        minifig_ids.sort()
+    else:
+        minifig_ids.sort(reverse=True)
     print(f"Number of minifigs to scrape: {len(minifig_ids)}\n")
 
     if args.with_proxy:
@@ -214,16 +225,25 @@ if __name__ == "__main__":
         proxy = next(proxies)
     else:
         proxy = None
+
+    start = time()
+
     batch_size = 10
-    for batch in tqdm(range(0, len(minifig_ids), batch_size)):
-        print("Sleeping for 5 seconds...")
-        sleep(5)
-        print(f"Batch {int((batch/batch_size)+1)}")
-        for minifig_id in minifig_ids[batch : batch + batch_size]:
-            try:
-                beautifulsoup_parse(minifig_id, proxy, args.scrape_all)
-            except (ProxyError, AvgPriceNotFound, ConnectTimeout, SSLError) as e:
-                print(f"Error '{e}'\n")
-                if args.with_proxy:
-                    proxy = next(proxies)
-                    print(f"\ttrying another proxy... {proxy}")
+    try:
+        for batch in tqdm(range(0, len(minifig_ids), batch_size)):
+            print("Sleeping for 5 seconds...")
+            sleep(5)
+            print(f"Batch {int((batch/batch_size)+1)}")
+            for minifig_id in minifig_ids[batch : batch + batch_size]:
+                try:
+                    beautifulsoup_parse(minifig_id, proxy, args.scrape_all)
+                except (ProxyError, AvgPriceNotFound, ConnectTimeout, SSLError) as e:
+                    print(f"Error '{e}'\n")
+                    if args.with_proxy:
+                        proxy = next(proxies)
+                        print(f"\ttrying another proxy... {proxy}")
+    except KeyboardInterrupt:
+        print("Interrupted manually")
+        pass
+    end = time()
+    print(f"Time elapsed: {round(end - start, 2)}s")

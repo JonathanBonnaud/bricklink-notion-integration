@@ -49,7 +49,7 @@ or `python notion/create_db.py [minifigs|sets]`
 - scrape_BL_ids : save ids in sqlite - DONE
     - could even get id, name, category, subcategory
 - then read ids from sqlite to scrape info - DONE
-- read data from Notion where owned=True to process this data in priority
+- read data from Notion where owned=True to process this data in priority - DONE
 - add to table:  last_scraped_at
 
 ### In notion/

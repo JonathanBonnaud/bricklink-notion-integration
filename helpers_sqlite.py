@@ -63,10 +63,6 @@ def read_minifigs_with_appears_in(category: str) -> pd.DataFrame:
     return df
 
 
-def read_minifigs_from_collec(category: str, account_name: str) -> pd.DataFrame:
-    pass
-
-
 """
 Read notion_mapping table
 """

@@ -1,7 +1,7 @@
 import argparse
 
 from table_properties import MINIFIG_SCHEMA, SET_SCHEMA
-from notion.helpers_notion import account_setup
+from notion.helpers_notion import account_setup, read_db_id_from_file
 
 DB_CONFIG = {
     "minifigs": {
@@ -24,11 +24,6 @@ def write_to_file(db_type: str, db_id: str):
         file.write(db_id)
 
 
-def read_db_id_from_file(db_type: str) -> str:
-    with open(f"notion/files/{PREFIX}_{db_type}_database_id.txt", "r") as file:
-        return str(file.read())
-
-
 def create_database(db_type: str):
     data = {
         "parent": {"type": "page_id", "page_id": PAGE_ID},
@@ -49,8 +44,8 @@ def create_database(db_type: str):
 
 
 def update_dbs_to_add_relations():
-    minifig_db_id = read_db_id_from_file("minifigs")
-    sets_db_id = read_db_id_from_file("sets")
+    minifig_db_id = read_db_id_from_file(PREFIX, "minifigs")
+    sets_db_id = read_db_id_from_file(PREFIX, "sets")
     properties = {
         "Appears In": {
             "name": "Appears In",

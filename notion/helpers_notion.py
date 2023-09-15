@@ -1,11 +1,14 @@
 import os
+
 from notion_client import Client, AsyncClient
+from notion_client.helpers import collect_paginated_api
 from notion.private_secrets import (
     NOTION_JONATHAN_SECRET,
     NOTION_VICTO_SECRET,
     PAGE_ID,
     VICTO_PAGE_ID,
 )
+from constants import CATEGORY_CONFIG
 
 
 def account_setup():
@@ -36,3 +39,36 @@ def async_account_setup():
         page_id = PAGE_ID
 
     return client, prefix, page_id
+
+
+def read_db_id_from_file(account_prefix: str, db_type: str) -> str:
+    with open(f"notion/files/{account_prefix}_{db_type}_database_id.txt", "r") as file:
+        return str(file.read())
+
+
+def read_owned_minifigs(category: str = None, client: Client = None, prefix=None):
+    if client is None and prefix is None:
+        client, prefix, _ = account_setup()
+
+    cat = CATEGORY_CONFIG[category]["name"] if category is not None else None
+    filters = (
+        {
+            "and": [
+                {"property": "Category", "select": {"equals": cat}},
+                {"property": "owned", "checkbox": {"equals": True}},
+            ]
+        }
+        if cat is not None
+        else {"property": "owned", "checkbox": {"equals": True}}
+    )
+
+    all_results = collect_paginated_api(
+        client.databases.query,
+        database_id=read_db_id_from_file(prefix, "minifigs"),
+        # filter={"property": "owned", "checkbox": {"equals": True}},
+        filter=filters,
+    )
+    print(f"You own {len(all_results)} minifigs from {cat} category")
+    return [
+        result["properties"]["Id"]["title"][0]["plain_text"] for result in all_results
+    ]
