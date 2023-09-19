@@ -43,6 +43,10 @@ or `python notion/create_db.py [minifigs|sets]`
 
 `python notion/async_upsert_minifigs_data.py CATEGORY`
 
+# Scheduling
+
+Create cron job with `crontab -e`
+
 ## Remaining Work To Do
 
 ### In scraping/

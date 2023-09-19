@@ -1,22 +1,11 @@
+import argparse
 import sqlite3
-from notion_client.helpers import collect_paginated_api
-from constants import CATEGORY_CONFIG
+
 import pandas as pd
-from tqdm import tqdm
-from helpers_sqlite import (
-    read_minifig_database,
-    get_bl_ids_from_sqlite,
-    read_minifigs_with_appears_in,
-    read_minifigs_with_avg_price,
-    async_get_page_id_from_sqlite,
-    async_insert_notion_mapping,
-)
-from notion.helpers_notion import (
-    account_setup,
-    read_owned_minifigs,
-    read_db_id_from_file,
-)
-from sqlite import insert_notion_mapping
+from notion_client.helpers import collect_paginated_api
+
+from constants import CATEGORY_CONFIG
+from notion.helpers_notion import account_setup, read_db_id_from_file
 
 NOTION, PREFIX, _ = account_setup()
 
@@ -73,11 +62,23 @@ if __name__ == "__main__":
     """
     WARNING: only works for minifigs for now AND always use a category
     """
-    cat = "sh"
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "category",
+        choices=CATEGORY_CONFIG.keys(),
+        help="category of minifigs to scrape",
+        type=str,
+    )
+    parser.add_argument(
+        "type", choices=["minifigs", "sets"], help="type to scrape", type=str
+    )
+    args = parser.parse_args()
+
+    cat = "sw"
     if cat is None:
         exit(r"/!\ Please specify a category!!!")
 
-    existing_pages = read_notion_db("minifigs", cat)
+    existing_pages = read_notion_db("sets", cat)
 
     # # REINSERT MISTAKENLY DELETED ENTRIES
     # tot = 0
@@ -97,6 +98,10 @@ if __name__ == "__main__":
     seen = set()
     dupes = [p for p in existing_bl_ids if p in seen or seen.add(p)]
     print(f"Found {len(dupes)} duplicates: {dupes}")
+
+    a = input("Enter DELETE to delete duplicates:")
+    if a != "DELETE":
+        exit("Aborted")
 
     if len(dupes) > 0:
         tot = 0
