@@ -68,13 +68,12 @@ if __name__ == "__main__":
         "type", choices=["minifigs", "sets"], help="type to scrape", type=str
     )
     args = parser.parse_args()
-    print(f"Scraping category: {args.category}")
+    print(f"Scraping {args.type} for category: {args.category} ...")
 
     page_number = 0
     list_all = []
     total_inserted = 0
 
-    print(f"Scraping...")
     while True:
         try:
             page_number += 1
@@ -89,4 +88,4 @@ if __name__ == "__main__":
             print("Last page:", page_number - 1)
             break  # exit `while` loop
 
-    print(f"Total new inserted: {total_inserted}")
+    print(f"Total new inserted: {total_inserted}\n")
