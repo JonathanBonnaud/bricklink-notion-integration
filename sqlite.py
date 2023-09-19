@@ -117,7 +117,9 @@ def insert_notion_mapping(page_id: str, bl_id: str, account_name: str):
         "INSERT INTO notion_mapping VALUES (?,?,?)", (page_id, bl_id, account_name)
     )
     conn.commit()
+    changes = conn.total_changes
     conn.close()
+    return changes
 
 
 if __name__ == "__main__":

@@ -14,7 +14,7 @@ def read_minifig_database(category: Optional[str]) -> pd.DataFrame:
 
     conn = sqlite3.connect("data/lego.db")
     df = pd.read_sql_query(f"SELECT * FROM minifigs {where}", conn)
-
+    conn.close()
     print(f"Read {df.shape[0]} minifigs from database")
     return df
 
@@ -26,7 +26,7 @@ def read_sets_database(category: Optional[str]) -> pd.DataFrame:
 
     conn = sqlite3.connect("data/lego.db")
     df = pd.read_sql_query(f"SELECT * FROM sets {where}", conn)
-
+    conn.close()
     print(f"Read {df.shape[0]} sets from database")
     return df
 
@@ -43,6 +43,7 @@ def read_minifigs_with_avg_price(category: str) -> pd.DataFrame:
 
     conn = sqlite3.connect("data/lego.db")
     df = pd.read_sql_query(f"SELECT * FROM minifigs {where}", conn)
+    conn.close()
     print(f"Read {df.shape[0]} minifigs from database (where avg_price not null)")
     return df
 
@@ -59,6 +60,7 @@ def read_minifigs_with_appears_in(category: str) -> pd.DataFrame:
 
     conn = sqlite3.connect("data/lego.db")
     df = pd.read_sql_query(f"SELECT * FROM minifigs {where}", conn)
+    conn.close()
     print(f"Read {df.shape[0]} minifigs from database (where appears_in not null)")
     return df
 
@@ -74,6 +76,7 @@ def get_page_id_from_sqlite(bl_id: str, account_name: str) -> Optional[str]:
         f"SELECT * FROM notion_mapping WHERE bl_id = '{bl_id}' AND account_name = '{account_name}'",
         conn,
     )
+    conn.close()
     # print(f"Read {df.shape[0]} mapping from database")
     try:
         return str(df["page_id"].values[0])
@@ -83,9 +86,11 @@ def get_page_id_from_sqlite(bl_id: str, account_name: str) -> Optional[str]:
 
 def get_bl_ids_from_sqlite(account_name: str) -> pd.DataFrame:
     conn = sqlite3.connect("data/lego.db")
-    return pd.read_sql_query(
+    df = pd.read_sql_query(
         f"SELECT bl_id FROM notion_mapping WHERE account_name = '{account_name}'", conn
     )
+    conn.close()
+    return df
 
 
 """
@@ -110,6 +115,7 @@ async def async_insert_notion_mapping(page_id: str, bl_id: str, account_name: st
         await conn.execute(
             "INSERT INTO notion_mapping VALUES (?,?,?)", (page_id, bl_id, account_name)
         )
+        await conn.commit()
 
 
 def insert_to_sqlite(table_name: str, df: pd.DataFrame):

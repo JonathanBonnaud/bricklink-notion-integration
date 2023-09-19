@@ -52,6 +52,8 @@ or `python notion/create_db.py [minifigs|sets]`
 - then read ids from sqlite to scrape info - DONE
 - read data from Notion where owned=True to process this data in priority - DONE
 - add to table:  last_scraped_at
+- create priority list of minifigs to scrape
+    - 1- owned > 2- wanted > 3- most recent
 
 ### In notion/
 
