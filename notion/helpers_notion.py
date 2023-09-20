@@ -46,7 +46,7 @@ def read_db_id_from_file(account_prefix: str, db_type: str) -> str:
         return str(file.read())
 
 
-def read_owned_minifigs(category: str = None, client: Client = None, prefix=None):
+def read_owned(db_type: str, category: str = None, client: Client = None, prefix=None):
     if client is None and prefix is None:
         client, prefix, _ = account_setup()
 
@@ -64,11 +64,37 @@ def read_owned_minifigs(category: str = None, client: Client = None, prefix=None
 
     all_results = collect_paginated_api(
         client.databases.query,
-        database_id=read_db_id_from_file(prefix, "minifigs"),
-        # filter={"property": "owned", "checkbox": {"equals": True}},
+        database_id=read_db_id_from_file(prefix, db_type),
         filter=filters,
     )
-    print(f"You own {len(all_results)} minifigs from {cat} category")
+    print(f"You own {len(all_results)} {db_type} from {cat} category")
+    return [
+        result["properties"]["Id"]["title"][0]["plain_text"] for result in all_results
+    ]
+
+
+def read_wanted(db_type: str, category: str = None, client: Client = None, prefix=None):
+    if client is None and prefix is None:
+        client, prefix, _ = account_setup()
+
+    cat = CATEGORY_CONFIG[category]["name"] if category is not None else None
+    filters = (
+        {
+            "and": [
+                {"property": "Category", "select": {"equals": cat}},
+                {"property": "Wanted", "checkbox": {"equals": True}},
+            ]
+        }
+        if cat is not None
+        else {"property": "Wanted", "checkbox": {"equals": True}}
+    )
+
+    all_results = collect_paginated_api(
+        client.databases.query,
+        database_id=read_db_id_from_file(prefix, db_type),
+        filter=filters,
+    )
+    print(f"You want {len(all_results)} {db_type} from {cat} category")
     return [
         result["properties"]["Id"]["title"][0]["plain_text"] for result in all_results
     ]

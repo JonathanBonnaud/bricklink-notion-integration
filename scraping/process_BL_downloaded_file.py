@@ -53,7 +53,7 @@ def process_tsv_file(type_val: str, cat_id: int):
     elif type_val == "sets":
         df = df[df["id"].str.startswith("7")]  # Filter IDs not starting with 7
 
-        df["minifigs_included"] = ["TBD" for _ in range(len(df.index))]
+        df["minifigs_included"] = [None for _ in range(len(df.index))]
         df["image"] = df.agg(
             lambda x: f"https://img.bricklink.com/ItemImage/ON/0/{x['id']}.png", axis=1
         )

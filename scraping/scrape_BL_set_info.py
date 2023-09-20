@@ -1,6 +1,5 @@
 import argparse
 from time import sleep, time
-from typing import Optional
 
 import requests
 from bs4 import BeautifulSoup
@@ -17,40 +16,43 @@ from scraping.helpers import (
     scrape_initial_values,
 )
 from helpers_sqlite import (
-    read_minifigs_with_avg_price,
-    read_minifigs_with_appears_in,
-    read_minifig_database,
+    read_sets_with_avg_price,
+    read_sets_with_release_year,
+    read_sets_database,
 )
 from notion.helpers_notion import read_owned, read_wanted
-from sqlite import insert_minifig
+from sqlite import insert_set
 
 
-def get_appears_in(minifig_id: str, proxy: str = None) -> Optional[str]:
-    print("Scraping Appears In...")
-    proxies = {"https": proxy} if proxy else None
-    page = requests.get(
-        f"https://www.bricklink.com/catalogItemIn.asp?M={minifig_id}&in=S",
-        headers=HEADERS,
-        proxies=proxies,
-        timeout=20,
-    )
-    soup = BeautifulSoup(page.text, "html.parser")
-    html = etree.HTML(str(soup))
-
-    xpath = '//*[@id="id-main-legacy-table"]/tr/td/table[2]/tr/td/center/table/tr/td[3]/font/a[1]/text()'
-    set_list = html.xpath(xpath)
-    if appears_in_str := ",".join(set_list):
-        return appears_in_str
-    else:
-        print(f"{Bcolors.WARNING}Warning: No Appears In found{Bcolors.ENDC}")
-        return None
+# def get_minifigs_included(set_id: str, proxy: str = None) -> Optional[str]:
+#     print("Scraping Minifigs Included...")
+#     proxies = {"https": proxy} if proxy else None
+#     page = requests.get(
+#         f"https://www.bricklink.com/catalogItemInv.asp?S={set_id}&viewItemType=M",
+#         headers=HEADERS,
+#         proxies=proxies,
+#         timeout=20,
+#     )
+#     soup = BeautifulSoup(page.text, "html.parser")
+#     html = etree.HTML(str(soup))
+#
+#     xpath = '//*[@id="id-main-legacy-table"]/tr/td/table[2]/tr/td/center/table/tr/td[3]/font/a[1]/text()'
+#     set_list = html.xpath(xpath)
+#     if appears_in_str := ",".join(set_list):
+#         return appears_in_str
+#     else:
+#         print(f"{Bcolors.WARNING}Warning: No Minifigs Included found{Bcolors.ENDC}")
+#         return None
 
 
 def beautifulsoup_parse(
-    minifig_id: str, proxy: str = None, scrape_all: bool = False
+    set_id: str,
+    proxy: str = None,
+    scrape_all: bool = False,
+    scrape_only_release_year: bool = False,
 ) -> None:
-    url = f"https://www.bricklink.com/v2/catalog/catalogitem.page?M={minifig_id}#T=P"
-    print(f"Scraping page for minifig {minifig_id}... [{url}]")
+    url = f"https://www.bricklink.com/v2/catalog/catalogitem.page?S={set_id}#T=P"
+    print(f"Scraping page for set {set_id}... [{url}]")
 
     page = requests.get(url, headers=HEADERS)
     soup = BeautifulSoup(page.text, "html.parser")
@@ -64,19 +66,20 @@ def beautifulsoup_parse(
 
     # Then scrape the missing info
     try:
-        xpath = '//*[@id="yearReleasedSec"]/text()'
+        xpath = '//*[@id="id_divBlock_Main"]/table[1]/tbody/tr[2]/td[2]/center/table/tbody/tr[1]/td/table/tbody/tr/td[1]/font/a/text()'
         release_year = int(html.xpath(xpath)[0])
     except IndexError:
         print(f"{Bcolors.WARNING}Info: No release year found{Bcolors.ENDC}")
         release_year = None
 
-    avg_price_raw = scrape_price_guide_page("M", minifig_id, proxy=proxy)
+    avg_price_raw = ""
+    if not scrape_only_release_year:
+        avg_price_raw = scrape_price_guide_page("S", set_id, proxy=proxy)
+
     avg_price_raw, avg_price_pln, avg_price_eur = convert_raw_price(avg_price_raw)
 
-    appears_in = get_appears_in(minifig_id, proxy=proxy)
-
     d = {
-        "id": minifig_id,
+        "id": set_id,
         "name": name,
         "release_year": release_year,
         "image": None,
@@ -86,10 +89,10 @@ def beautifulsoup_parse(
         "avg_price_raw": avg_price_raw,
         "avg_price_pln": avg_price_pln,
         "avg_price_eur": avg_price_eur,
-        "appears_in": appears_in,
+        "minifigs_included": None,
     }
     # Write to sqlite db
-    insert_minifig(d)
+    insert_set(d)
     sleep(5)
     print("\n========================================\n")
 
@@ -99,14 +102,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "category",
         choices=CATEGORY_CONFIG.keys(),
-        help="category of minifigs to scrape",
+        help="category of sets to scrape",
         type=str,
     )
     parser.add_argument("--with-proxy", help="Execute with proxy", action="store_true")
     parser.add_argument("--scrape-all", help="Scrape all fields", action="store_true")
     parser.add_argument(
-        "--get-appears-in",
-        help="Focus on getting missing appears_in",
+        "--scrape-only-release-year",
+        help="Scrape release year field",
         action="store_true",
     )
     parser.add_argument(
@@ -115,22 +118,21 @@ if __name__ == "__main__":
         action="store_true",
     )
     args = parser.parse_args()
-    print(f"Scraping minifig info for category: {args.category}\n")
+    print(f"Scraping sets info for category: {args.category}\n")
 
-    if args.get_appears_in:
-        # Get minifigs with appears_in to filer them out
-        db_ids = read_minifigs_with_appears_in(args.category)["id"].values
+    if args.scrape_only_release_year:
+        db_ids = read_sets_with_release_year(args.category)["id"].values
     else:
-        # Get minifigs with avg_price to filer them out
-        db_ids = read_minifigs_with_avg_price(args.category)["id"].values
+        # Get sets with avg_price to filer them out
+        db_ids = read_sets_with_avg_price(args.category)["id"].values
 
-    # Order of ids to scrape 1- owned > 2- wanted > 3- most recent
-    owned = list(set(read_owned("minifigs", args.category)) - set(db_ids))
+    # Order of ids to scrape 1- owned > 2- wanted > 3- rest ordered by id
+    owned = list(set(read_owned("sets", args.category)) - set(db_ids))
     wanted = list(
-        set(read_wanted("minifigs", args.category)) - set(owned) - set(db_ids)
+        set(read_wanted("sets", args.category)) - set(owned) - set(db_ids)
     )  # In case owned and forgot to uncheck wanted
     rest = list(
-        set(read_minifig_database(args.category)["id"].values)
+        set(read_sets_database(args.category)["id"].values)
         - set(owned)
         - set(wanted)
         - set(db_ids)
@@ -141,8 +143,8 @@ if __name__ == "__main__":
     else:
         rest.sort(reverse=True)
 
-    minifig_ids = owned + wanted + rest
-    print(f"Number of minifigs to scrape: {len(minifig_ids)}\n")
+    set_ids = owned + wanted + rest
+    print(f"Number of sets to scrape: {len(set_ids)}\n")
 
     if args.with_proxy:
         proxies = get_proxies()
@@ -151,14 +153,19 @@ if __name__ == "__main__":
         proxy = None
 
     start = time()
-
+    MAX_SCRAPE = 100  # len(set_ids)
     batch_size = 10
     try:
-        for batch in tqdm(range(0, len(minifig_ids), batch_size)):
+        for batch in tqdm(range(0, MAX_SCRAPE, batch_size)):
             print(f"Batch {int((batch/batch_size)+1)}")
-            for minifig_id in minifig_ids[batch : batch + batch_size]:
+            for minifig_id in set_ids[batch : batch + batch_size]:
                 try:
-                    beautifulsoup_parse(minifig_id, proxy, args.scrape_all)
+                    beautifulsoup_parse(
+                        minifig_id,
+                        proxy,
+                        args.scrape_all,
+                        args.scrape_only_release_year,
+                    )
                 except (ProxyError, ConnectTimeout, SSLError) as e:
                     print(f"Error '{e}'\n")
                     if args.with_proxy:

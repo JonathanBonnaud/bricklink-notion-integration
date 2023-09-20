@@ -48,6 +48,40 @@ def read_minifigs_with_avg_price(category: str) -> pd.DataFrame:
     return df
 
 
+def read_sets_with_avg_price(category: str) -> pd.DataFrame:
+    where = (
+        f"WHERE category = '{CATEGORY_CONFIG[category]['name']}'" if category else ""
+    )
+    where = (
+        f"{where} AND avg_price_pln IS NOT NULL"
+        if where
+        else "WHERE avg_price_pln IS NOT NULL"
+    )
+
+    conn = sqlite3.connect("data/lego.db")
+    df = pd.read_sql_query(f"SELECT * FROM sets {where}", conn)
+    conn.close()
+    print(f"Read {df.shape[0]} sets from database (where avg_price not null)")
+    return df
+
+
+def read_sets_with_release_year(category: str) -> pd.DataFrame:
+    where = (
+        f"WHERE category = '{CATEGORY_CONFIG[category]['name']}'" if category else ""
+    )
+    where = (
+        f"{where} AND release_year IS NOT NULL"
+        if where
+        else "WHERE release_year IS NOT NULL"
+    )
+
+    conn = sqlite3.connect("data/lego.db")
+    df = pd.read_sql_query(f"SELECT * FROM sets {where}", conn)
+    conn.close()
+    print(f"Read {df.shape[0]} sets from database (where release_year not null)")
+    return df
+
+
 def read_minifigs_with_appears_in(category: str) -> pd.DataFrame:
     where = (
         f"WHERE category = '{CATEGORY_CONFIG[category]['name']}'" if category else ""

@@ -45,7 +45,7 @@ or `python notion/create_db.py [minifigs|sets]`
 
 # Scheduling
 
-Create cron job with `crontab -e`
+Edit cron jobs with `crontab -e`
 
 ## Remaining Work To Do
 
@@ -55,17 +55,20 @@ Create cron job with `crontab -e`
     - could even get id, name, category, subcategory
 - then read ids from sqlite to scrape info - DONE
 - read data from Notion where owned=True to process this data in priority - DONE
-- add to table:  last_scraped_at
-- create priority list of minifigs to scrape
+- create priority list of minifigs to scrape - DONE
     - 1- owned > 2- wanted > 3- most recent
+- add to table:  last_scraped_at - DONE
+- add locks to scraping scripts (when avg_price cannot be retrieved, lock it, and try to get the other fields, when all
+  are LOCKED, exit)
 
 ### In notion/
 
 - create async methods to send the data to Notion - DONE
 - add to notion_mapping table: last_updated_at
 
-### Deployment
+### Deployment / Scheduling
 
+- add cron scheduling (weekly scrape ids for new, daily scrape infos)- DONE
 - create serverless deployment
 - deploy to AWS
     - and schedule the scraper

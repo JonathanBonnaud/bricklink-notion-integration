@@ -1,5 +1,6 @@
 import argparse
 
+import numpy as np
 import pandas as pd
 from notion_client import APIResponseError, APIErrorCode
 from tqdm import tqdm
@@ -17,7 +18,7 @@ from helpers_sqlite import async_insert_notion_mapping
 
 NOTION, PREFIX, _ = async_account_setup()
 
-SEM = asyncio.Semaphore(30)
+SEM = asyncio.Semaphore(20)
 
 
 def read_db_id_from_file() -> str:
@@ -50,13 +51,19 @@ async def upsert_set_page(row: pd.Series, db_id: str):
                     "rich_text": [{"text": {"content": row["avg_price_raw"] or ""}}]
                 },
                 "Avg price PLN": {
-                    "number": row["avg_price_pln"] if not row["avg_price_pln"] else None
+                    "number": row["avg_price_pln"]
+                    if not np.isnan(row["avg_price_pln"])
+                    else None
                 },
                 "Avg price EUR": {
-                    "number": row["avg_price_eur"] if not row["avg_price_eur"] else None
+                    "number": row["avg_price_eur"]
+                    if not np.isnan(row["avg_price_eur"])
+                    else None
                 },
                 "Release Year": {
-                    "number": row["release_year"] if not row["release_year"] else None
+                    "number": row["release_year"]
+                    if not np.isnan(row["release_year"])
+                    else None
                 },
                 # # /!\ Need to be excluded not to update 'Minifigs Included' with empty values /!\
                 # "Minifigs Included": {
@@ -83,6 +90,9 @@ async def upsert_set_page(row: pd.Series, db_id: str):
                 await async_insert_notion_mapping(page_created["id"], row["id"], PREFIX)
                 print(f"Created page for {row['id']}")
                 return 2  # INSERTED
+            else:
+                print(f"Error: {e}")
+                raise e
 
 
 async def main(df: pd.DataFrame, db_id: str):
@@ -125,14 +135,10 @@ if __name__ == "__main__":
         df = read_sets_database(category)
 
     print(f"Number of sets to process: {df.shape[0]}")
-
-    inserted = 0
-    updated = 0
-
-    db_id = read_db_id_from_file()
-
     # Insert most recent first
     df = df.sort_values(by=["release_year", "id"], ascending=False)
+
+    db_id = read_db_id_from_file()
 
     start = time.time()
     loop = asyncio.get_event_loop()

@@ -15,7 +15,7 @@ from helpers_sqlite import (
     async_get_page_id_from_sqlite,
     async_insert_notion_mapping,
 )
-from notion.helpers_notion import async_account_setup, read_owned_minifigs
+from notion.helpers_notion import async_account_setup, read_owned
 
 NOTION, PREFIX, _ = async_account_setup()
 
@@ -141,7 +141,7 @@ if __name__ == "__main__":
         minifig_df = read_minifig_database(category)
         df = minifig_df[~minifig_df["id"].isin(bl_ids_df["bl_id"])]
     elif args.update_collec:
-        bl_ids = read_owned_minifigs(category)
+        bl_ids = read_owned("minifigs", category)
         minifig_df = read_minifig_database(category)
         df = minifig_df[minifig_df["id"].isin(bl_ids)]
     elif args.update:
