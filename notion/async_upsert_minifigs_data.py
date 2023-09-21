@@ -14,12 +14,14 @@ from helpers_sqlite import (
     read_minifigs_with_avg_price,
     async_get_page_id_from_sqlite,
     async_insert_notion_mapping,
+    async_get_notion_mapping_from_bl_id,
+    async_update_notion_mapping,
 )
 from notion.helpers_notion import async_account_setup, read_owned
 
 NOTION, PREFIX, _ = async_account_setup()
 
-SEM = asyncio.Semaphore(30)
+SEM = asyncio.Semaphore(20)
 
 
 def read_db_id_from_file() -> str:
@@ -80,16 +82,22 @@ async def upsert_minifig_page(row: pd.Series, db_id: str):
                 "Appears In": {"relation": await get_relations(row["appears_in"])},
             },
         }
-        page_id = await async_get_page_id_from_sqlite(row["id"], PREFIX)
+
+        page_id, _, _, last_updated_at = await async_get_notion_mapping_from_bl_id(
+            row["id"], PREFIX
+        )
+        if last_updated_at is not None and last_updated_at > row["last_scraped_at"]:
+            return 0  # SKIPPED
 
         try:
             page = await NOTION.pages.retrieve(page_id)
             await notion_update(row["id"], page["id"], data)
+            await async_update_notion_mapping(page["id"], row["id"], PREFIX)
             return 1  # UPDATED
         except APIResponseError as e:
             if e.code == APIErrorCode.RateLimited:
-                print("Rate limited, sleeping for 10 minutes...")
-                await asyncio.sleep(60 * 10)
+                print("Rate limited, sleeping for 5 minutes...")
+                await asyncio.sleep(60 * 5)
             elif e.code == APIErrorCode.ValidationError:  # Page not found
                 page_created = await NOTION.pages.create(database_id=db_id, **data)
                 await async_insert_notion_mapping(page_created["id"], row["id"], PREFIX)
@@ -108,7 +116,7 @@ async def main(df: pd.DataFrame, db_id: str):
     ]
     res = await tqdm.gather(*tasks)  # asyncio.gather
     print(
-        f"{sum([1 for a in res if a == 1])} updated, {sum([1 for a in res if a == 2])} inserted"
+        f"{sum([1 for a in res if a == 1])} updated, {sum([1 for a in res if a == 2])} inserted, {sum([1 for a in res if a == 0])} skipped"
     )
 
 

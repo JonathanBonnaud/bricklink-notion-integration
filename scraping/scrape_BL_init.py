@@ -1,4 +1,5 @@
 import argparse
+from datetime import datetime
 
 import requests
 from bs4 import BeautifulSoup
@@ -48,6 +49,9 @@ def beautifulsoup_parse(arg_type: str, category: str, pg: int):
         "bricklink": [
             f"https://www.bricklink.com/v2/catalog/catalogitem.page?{bl_type}={x}"
             for x in list_of_ids
+        ],
+        "last_scraped_at": [
+            datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S") for _ in list_of_ids
         ],
     }
 

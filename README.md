@@ -60,11 +60,12 @@ Edit cron jobs with `crontab -e`
 - add to table:  last_scraped_at - DONE
 - add locks to scraping scripts (when avg_price cannot be retrieved, lock it, and try to get the other fields, when all
   are LOCKED, exit)
+- general refactor (factorize code, create classes, optimize where possible, etc)
 
 ### In notion/
 
 - create async methods to send the data to Notion - DONE
-- add to notion_mapping table: last_updated_at
+- add to notion_mapping table: last_updated_at - DONE
 
 ### Deployment / Scheduling
 

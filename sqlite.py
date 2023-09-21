@@ -35,6 +35,7 @@ def sql_database():
                 (page_id              TEXT NOT NULL,
                 bl_id             TEXT NOT NULL,
                 account_name             TEXT NOT NULL,
+                last_updated_at  TEXT NOT NULL,
                 UNIQUE(page_id, bl_id) ON CONFLICT IGNORE
                 );"""
     )
@@ -169,7 +170,10 @@ def insert_set(set_dict: dict):
     conn.close()
 
 
-def insert_notion_mapping(page_id: str, bl_id: str, account_name: str):
+def _insert_notion_mapping(page_id: str, bl_id: str, account_name: str):
+    """
+    DEPRECIATED: only used in old script '_upsert_date.py'
+    """
     conn = sqlite3.connect("data/lego.db")
     cursor = conn.cursor()
     cursor.execute(

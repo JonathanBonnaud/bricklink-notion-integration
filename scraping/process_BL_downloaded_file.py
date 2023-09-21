@@ -1,4 +1,5 @@
 import argparse
+from datetime import datetime
 
 import numpy as np
 import pandas as pd
@@ -69,6 +70,7 @@ def process_tsv_file(type_val: str, cat_id: int):
     df.loc[df["sub_category"] == "", "sub_category"] = np.NaN
     df["category"] = df["category"].str.split(" / ").str[0].str.strip()
     df.loc[df["release_year"] == "?", "release_year"] = np.NaN
+    df["last_scraped_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
     return df
 

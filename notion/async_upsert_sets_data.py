@@ -10,8 +10,9 @@ import time
 
 from helpers_sqlite import (
     read_sets_database,
-    async_get_page_id_from_sqlite,
+    async_get_notion_mapping_from_bl_id,
     get_bl_ids_from_sqlite,
+    async_update_notion_mapping,
 )
 from notion.helpers_notion import async_account_setup
 from helpers_sqlite import async_insert_notion_mapping
@@ -75,11 +76,17 @@ async def upsert_set_page(row: pd.Series, db_id: str):
                 # },
             },
         }
-        page_id = await async_get_page_id_from_sqlite(row["id"], PREFIX)
+
+        page_id, _, _, last_updated_at = await async_get_notion_mapping_from_bl_id(
+            row["id"], PREFIX
+        )
+        if last_updated_at is not None and last_updated_at > row["last_scraped_at"]:
+            return 0  # SKIPPED
 
         try:
             page = await NOTION.pages.retrieve(page_id)
             await notion_update(row["id"], page["id"], data)
+            await async_update_notion_mapping(page["id"], row["id"], PREFIX)
             return 1  # UPDATED
         except APIResponseError as e:
             if e.code == APIErrorCode.RateLimited:
@@ -104,7 +111,7 @@ async def main(df: pd.DataFrame, db_id: str):
     ]
     res = await tqdm.gather(*tasks)  # asyncio.gather
     print(
-        f"{sum([1 for a in res if a == 1])} updated, {sum([1 for a in res if a == 2])} inserted"
+        f"{sum([1 for a in res if a == 1])} updated, {sum([1 for a in res if a == 2])} inserted, {sum([1 for a in res if a == 0])} skipped"
     )
 
 

@@ -1,5 +1,5 @@
 import sqlite3
-from typing import Optional
+from typing import Optional, Tuple
 
 import aiosqlite
 import pandas as pd
@@ -133,21 +133,41 @@ Async methods
 
 
 async def async_get_page_id_from_sqlite(bl_id: str, account_name: str) -> Optional[str]:
+    row = await async_get_notion_mapping_from_bl_id(bl_id, account_name)
+    return row[0]
+
+
+async def async_get_notion_mapping_from_bl_id(bl_id: str, account_name: str) -> Tuple:
     async with aiosqlite.connect("data/lego.db") as conn:
         async with conn.execute(
             f"SELECT * FROM notion_mapping WHERE bl_id = '{bl_id}' AND account_name = '{account_name}'"
         ) as cursor:
             try:
-                rows = await cursor.fetchone()
-                return str(rows[0])
-            except (TypeError, IndexError):
-                return None
+                (
+                    page_id,
+                    _bl_id,
+                    _account_name,
+                    last_updated_at,
+                ) = await cursor.fetchone()
+                return page_id, _bl_id, _account_name, last_updated_at
+            except TypeError:  # no mapping found in table
+                return None, None, None, None
 
 
 async def async_insert_notion_mapping(page_id: str, bl_id: str, account_name: str):
     async with aiosqlite.connect("data/lego.db") as conn:
         await conn.execute(
-            "INSERT INTO notion_mapping VALUES (?,?,?)", (page_id, bl_id, account_name)
+            "INSERT INTO notion_mapping VALUES (?,?,?,datetime('now'))",
+            (page_id, bl_id, account_name),
+        )
+        await conn.commit()
+
+
+async def async_update_notion_mapping(page_id: str, bl_id: str, account_name: str):
+    async with aiosqlite.connect("data/lego.db") as conn:
+        await conn.execute(
+            f"""UPDATE notion_mapping SET last_updated_at=datetime('now') 
+            WHERE page_id='{page_id}' AND bl_id='{bl_id}' AND account_name='{account_name}'"""
         )
         await conn.commit()
 
