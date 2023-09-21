@@ -8,7 +8,7 @@ from requests.exceptions import ProxyError, ConnectTimeout, SSLError
 from tqdm import tqdm
 
 from constants import HEADERS, CATEGORY_CONFIG, Bcolors
-from exceptions import CategoryNotFound, NameNotFound, AvgPriceNotFound
+from exceptions import BLQuotaExceeded
 from scraping.helpers import (
     get_proxies,
     scrape_price_guide_page,
@@ -153,7 +153,7 @@ if __name__ == "__main__":
         proxy = None
 
     start = time()
-    MAX_SCRAPE = 100  # len(set_ids)
+    MAX_SCRAPE = 100  # len(set_ids) #FIXME: add as script argument
     batch_size = 10
     try:
         for batch in tqdm(range(0, MAX_SCRAPE, batch_size)):
@@ -171,8 +171,9 @@ if __name__ == "__main__":
                     if args.with_proxy:
                         proxy = next(proxies)
                         print(f"\ttrying another proxy... {proxy}")
-                except AvgPriceNotFound as e:
+                except BLQuotaExceeded as e:
                     end = time()
+                    print(f"{Bcolors.FAIL}Error: BL Quota Exceeded{Bcolors.ENDC}")
                     print(f"Time elapsed: {round(end - start, 2)}s")
                     exit()
             print("Sleeping for 30 seconds...")

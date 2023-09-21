@@ -9,7 +9,7 @@ from requests.exceptions import ProxyError, ConnectTimeout, SSLError
 from tqdm import tqdm
 
 from constants import HEADERS, CATEGORY_CONFIG, Bcolors
-from exceptions import CategoryNotFound, NameNotFound, AvgPriceNotFound
+from exceptions import BLQuotaExceeded
 from scraping.helpers import (
     get_proxies,
     scrape_price_guide_page,
@@ -22,6 +22,7 @@ from helpers_sqlite import (
     read_minifig_database,
 )
 from notion.helpers_notion import read_owned, read_wanted
+from notion_client.errors import HTTPResponseError
 from sqlite import insert_minifig
 
 
@@ -125,10 +126,14 @@ if __name__ == "__main__":
         db_ids = read_minifigs_with_avg_price(args.category)["id"].values
 
     # Order of ids to scrape 1- owned > 2- wanted > 3- most recent
-    owned = list(set(read_owned("minifigs", args.category)) - set(db_ids))
-    wanted = list(
-        set(read_wanted("minifigs", args.category)) - set(owned) - set(db_ids)
-    )  # In case owned and forgot to uncheck wanted
+    owned = wanted = []
+    try:
+        owned = list(set(read_owned("minifigs", args.category)) - set(db_ids))
+        wanted = list(
+            set(read_wanted("minifigs", args.category)) - set(owned) - set(db_ids)
+        )  # In case owned and forgot to uncheck wanted
+    except HTTPResponseError as e:
+        print(e)
     rest = list(
         set(read_minifig_database(args.category)["id"].values)
         - set(owned)
@@ -164,8 +169,9 @@ if __name__ == "__main__":
                     if args.with_proxy:
                         proxy = next(proxies)
                         print(f"\ttrying another proxy... {proxy}")
-                except AvgPriceNotFound as e:
+                except BLQuotaExceeded:
                     end = time()
+                    print(f"{Bcolors.FAIL}Error: BL Quota Exceeded{Bcolors.ENDC}")
                     print(f"Time elapsed: {round(end - start, 2)}s")
                     exit()
             print("Sleeping for 30 seconds...")

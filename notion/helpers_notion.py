@@ -7,6 +7,8 @@ from notion.private_secrets import (
     NOTION_VICTO_SECRET,
     PAGE_ID,
     VICTO_PAGE_ID,
+    NOTION_LEGO_COLLECTION_SECRET,
+    LEGO_COLLEC_PAGE_ID,
 )
 from constants import CATEGORY_CONFIG
 
@@ -17,6 +19,11 @@ def account_setup():
         client = Client(auth=NOTION_VICTO_SECRET)
         prefix = "VI"
         page_id = VICTO_PAGE_ID
+    elif os.environ.get("ACCOUNT") == "LEGO_COLLEC":
+        print("Connected to Lego Collection's Notion\n======================")
+        client = Client(auth=NOTION_LEGO_COLLECTION_SECRET)
+        prefix = "LEGO"
+        page_id = LEGO_COLLEC_PAGE_ID
     else:
         print("Connected to Jo's Notion\n======================")
         client = Client(auth=NOTION_JONATHAN_SECRET)
@@ -32,6 +39,11 @@ def async_account_setup():
         client = AsyncClient(auth=NOTION_VICTO_SECRET)
         prefix = "VI"
         page_id = VICTO_PAGE_ID
+    elif os.environ.get("ACCOUNT") == "LEGO_COLLEC":
+        print("Connected to Lego Collection's Notion\n======================")
+        client = AsyncClient(auth=NOTION_LEGO_COLLECTION_SECRET)
+        prefix = "LEGO"
+        page_id = LEGO_COLLEC_PAGE_ID
     else:
         print("[async] Connected to Jo's Notion\n======================")
         client = AsyncClient(auth=NOTION_JONATHAN_SECRET)

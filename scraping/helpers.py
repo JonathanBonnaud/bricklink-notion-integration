@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from lxml import etree
 import unicodedata
 from constants import Bcolors
-from exceptions import CategoryNotFound, NameNotFound, AvgPriceNotFound
+from exceptions import CategoryNotFound, NameNotFound, BLQuotaExceeded
 from currency_converter import CurrencyConverter
 
 cc = CurrencyConverter()
@@ -31,6 +31,14 @@ def scrape_price_guide_page(
     soup = BeautifulSoup(page.text, "html.parser")
     html = etree.HTML(str(soup))
 
+    try:
+        xpath_error = '//*[@id="blErrorTitle"]'
+        assert not html.xpath(
+            xpath_error
+        )  # Check that error message "Quota Exceeded" is not present
+    except AssertionError:
+        raise BLQuotaExceeded()
+
     xpath = '//*[@id="id-main-legacy-table"]/tr/td/table[3]/tr[3]/td[4]/table/tr/td/table/tr[4]/td[2]/b/text()'
     current_used_avg_price = html.xpath(xpath)
 
@@ -54,8 +62,8 @@ def scrape_price_guide_page(
         return unicodedata.normalize("NFKD", price[0])
     else:
         print(f"{Bcolors.FAIL}Warning: No price found{Bcolors.ENDC}")
-        raise AvgPriceNotFound()
-        # return ""
+        # raise AvgPriceNotFound()
+        return ""
 
 
 def convert_raw_price(raw_price: str) -> Tuple:

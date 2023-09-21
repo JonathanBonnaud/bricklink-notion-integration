@@ -21,7 +21,7 @@ from notion.helpers_notion import async_account_setup, read_owned
 
 NOTION, PREFIX, _ = async_account_setup()
 
-SEM = asyncio.Semaphore(20)
+SEM = asyncio.Semaphore(30)
 
 
 def read_db_id_from_file() -> str:

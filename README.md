@@ -61,6 +61,7 @@ Edit cron jobs with `crontab -e`
 - add locks to scraping scripts (when avg_price cannot be retrieved, lock it, and try to get the other fields, when all
   are LOCKED, exit)
 - general refactor (factorize code, create classes, optimize where possible, etc)
+- differentiate when really no price vs BL quota reached - DONE
 
 ### In notion/
 

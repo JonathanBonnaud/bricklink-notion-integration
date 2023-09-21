@@ -19,7 +19,7 @@ from helpers_sqlite import async_insert_notion_mapping
 
 NOTION, PREFIX, _ = async_account_setup()
 
-SEM = asyncio.Semaphore(20)
+SEM = asyncio.Semaphore(30)
 
 
 def read_db_id_from_file() -> str:
