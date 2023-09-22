@@ -11,6 +11,6 @@ class CategoryNotFound(Exception):
 
 
 class BLQuotaExceeded(Exception):
-    """Raised when no avg price found in page"""
+    """Raised when BrickLink quota is exceeded"""
 
     pass

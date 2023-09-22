@@ -7,11 +7,12 @@ from lxml import etree
 
 from constants import HEADERS, CATEGORY_CONFIG
 from helpers_sqlite import write_to_sql
+from helpers import get_image_links_validity
 
 
 def beautifulsoup_parse(arg_type: str, category: str, pg: int):
     bl_type = "M" if arg_type == "minifigs" else "S"
-    bl_img_type = "MN" if arg_type == "minifigs" else "ON"
+    bl_img_type = ("MN",) if arg_type == "minifigs" else ("ON", "SN")
 
     cat_id = CATEGORY_CONFIG[category]["cat_id"]
     page = requests.get(
@@ -37,15 +38,38 @@ def beautifulsoup_parse(arg_type: str, category: str, pg: int):
         for font in list_of_categories
     ]
 
+    # Get images
+    if bl_type == "M":
+        list_of_images = [
+            f"https://img.bricklink.com/ItemImage/{bl_img_type[0]}/0/{x}.png"
+            for x in list_of_ids
+        ]
+    else:
+        default_urls, second_urls = map(
+            list,
+            zip(
+                *[
+                    (
+                        f"https://img.bricklink.com/ItemImage/{bl_img_type[0]}/0/{x}.png",
+                        f"https://img.bricklink.com/ItemImage/{bl_img_type[1]}/0/{x}.png",
+                    )
+                    for x in list_of_ids
+                ]
+            ),
+        )
+        list_of_images = [
+            url1 if is_valid else url2
+            for url1, is_valid, url2 in zip(
+                default_urls, get_image_links_validity(default_urls), second_urls
+            )
+        ]
+
     data = {
         "id": list_of_ids,
         "name": list_of_names,
         "category": [CATEGORY_CONFIG[category]["name"] for _ in list_of_ids],
         "sub_category": list_of_subcategories,
-        "image": [
-            f"https://img.bricklink.com/ItemImage/{bl_img_type}/0/{x}.png"
-            for x in list_of_ids
-        ],
+        "image": list_of_images,
         "bricklink": [
             f"https://www.bricklink.com/v2/catalog/catalogitem.page?{bl_type}={x}"
             for x in list_of_ids

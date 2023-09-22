@@ -1,8 +1,8 @@
 import argparse
 
-import numpy as np
 import pandas as pd
 from notion_client import APIResponseError, APIErrorCode
+from notion_client.errors import HTTPResponseError
 from tqdm import tqdm
 from tqdm.asyncio import tqdm
 import asyncio
@@ -13,18 +13,13 @@ from helpers_sqlite import (
     async_get_notion_mapping_from_bl_id,
     get_bl_ids_from_sqlite,
     async_update_notion_mapping,
+    async_insert_notion_mapping,
 )
-from notion.helpers_notion import async_account_setup
-from helpers_sqlite import async_insert_notion_mapping
+from notion.helpers_notion import async_account_setup, read_db_id_from_file
 
 NOTION, PREFIX, _ = async_account_setup()
 
 SEM = asyncio.Semaphore(30)
-
-
-def read_db_id_from_file() -> str:
-    with open(f"notion/files/{PREFIX}_sets_database_id.txt", "r") as file:
-        return str(file.read())
 
 
 async def notion_update(row_id: str, page_id: str, data: dict):
@@ -53,17 +48,17 @@ async def upsert_set_page(row: pd.Series, db_id: str):
                 },
                 "Avg price PLN": {
                     "number": row["avg_price_pln"]
-                    if not np.isnan(row["avg_price_pln"])
+                    if not pd.isnull(row["avg_price_pln"])
                     else None
                 },
                 "Avg price EUR": {
                     "number": row["avg_price_eur"]
-                    if not np.isnan(row["avg_price_eur"])
+                    if not pd.isnull(row["avg_price_eur"])
                     else None
                 },
                 "Release Year": {
                     "number": row["release_year"]
-                    if not np.isnan(row["release_year"])
+                    if not pd.isnull(row["release_year"])
                     else None
                 },
                 # # /!\ Need to be excluded not to update 'Minifigs Included' with empty values /!\
@@ -90,8 +85,8 @@ async def upsert_set_page(row: pd.Series, db_id: str):
             return 1  # UPDATED
         except APIResponseError as e:
             if e.code == APIErrorCode.RateLimited:
-                print("Rate limited, sleeping for 10 minutes...")
-                await asyncio.sleep(60 * 10)
+                print("Rate limited, sleeping for 5 minutes...")
+                await asyncio.sleep(60 * 5)
             elif e.code == APIErrorCode.ValidationError:  # Page not found
                 page_created = await NOTION.pages.create(database_id=db_id, **data)
                 await async_insert_notion_mapping(page_created["id"], row["id"], PREFIX)
@@ -100,6 +95,8 @@ async def upsert_set_page(row: pd.Series, db_id: str):
             else:
                 print(f"Error: {e}")
                 raise e
+        except HTTPResponseError:
+            return 3
 
 
 async def main(df: pd.DataFrame, db_id: str):
@@ -111,20 +108,20 @@ async def main(df: pd.DataFrame, db_id: str):
     ]
     res = await tqdm.gather(*tasks)  # asyncio.gather
     print(
-        f"{sum([1 for a in res if a == 1])} updated, {sum([1 for a in res if a == 2])} inserted, {sum([1 for a in res if a == 0])} skipped"
+        f"{sum([1 for a in res if a == 1])} updated, "
+        f"{sum([1 for a in res if a == 2])} inserted, "
+        f"{sum([1 for a in res if a == 0])} skipped, "
+        f"{sum([1 for a in res if a == 3])} failed"
     )
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "category", nargs="?", help="category of minifigs to send", type=str
+        "category", help="category of sets to send", type=str  # nargs="?"
     )
     parser.add_argument(
         "--insert", help="Only execute inserts of new", action="store_true"
-    )
-    parser.add_argument(
-        "--update", help="Only execute update of existing", action="store_true"
     )
     args = parser.parse_args()
     category = args.category
@@ -134,10 +131,6 @@ if __name__ == "__main__":
         bl_ids_df = get_bl_ids_from_sqlite(PREFIX)
         sets_df = read_sets_database(category)
         df = sets_df[~sets_df["id"].isin(bl_ids_df["bl_id"])]
-    elif args.update:
-        bl_ids_df = get_bl_ids_from_sqlite(PREFIX)
-        sets_df = read_sets_database(category)
-        df = sets_df[sets_df["id"].isin(bl_ids_df["bl_id"])]
     else:
         df = read_sets_database(category)
 
@@ -145,7 +138,7 @@ if __name__ == "__main__":
     # Insert most recent first
     df = df.sort_values(by=["release_year", "id"], ascending=False)
 
-    db_id = read_db_id_from_file()
+    db_id = read_db_id_from_file(PREFIX, "sets")
 
     start = time.time()
     loop = asyncio.get_event_loop()

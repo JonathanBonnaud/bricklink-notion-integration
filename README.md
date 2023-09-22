@@ -58,10 +58,10 @@ Edit cron jobs with `crontab -e`
 - create priority list of minifigs to scrape - DONE
     - 1- owned > 2- wanted > 3- most recent
 - add to table:  last_scraped_at - DONE
+- differentiate when really no price vs BL quota reached - DONE
 - add locks to scraping scripts (when avg_price cannot be retrieved, lock it, and try to get the other fields, when all
   are LOCKED, exit)
 - general refactor (factorize code, create classes, optimize where possible, etc)
-- differentiate when really no price vs BL quota reached - DONE
 
 ### In notion/
 

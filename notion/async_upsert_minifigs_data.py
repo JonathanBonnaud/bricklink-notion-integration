@@ -3,6 +3,7 @@ import argparse
 import numpy as np
 import pandas as pd
 from notion_client import APIResponseError, APIErrorCode
+from notion_client.errors import HTTPResponseError
 from tqdm.asyncio import tqdm
 import asyncio
 import time
@@ -10,23 +11,16 @@ import time
 from helpers_sqlite import (
     read_minifig_database,
     get_bl_ids_from_sqlite,
-    read_minifigs_with_appears_in,
-    read_minifigs_with_avg_price,
     async_get_page_id_from_sqlite,
     async_insert_notion_mapping,
     async_get_notion_mapping_from_bl_id,
     async_update_notion_mapping,
 )
-from notion.helpers_notion import async_account_setup, read_owned
+from notion.helpers_notion import async_account_setup, read_owned, read_db_id_from_file
 
 NOTION, PREFIX, _ = async_account_setup()
 
-SEM = asyncio.Semaphore(30)
-
-
-def read_db_id_from_file() -> str:
-    with open(f"notion/files/{PREFIX}_minifigs_database_id.txt", "r") as file:
-        return str(file.read())
+SEM = asyncio.Semaphore(10)
 
 
 async def get_relations(appears_in: str) -> list:
@@ -105,6 +99,8 @@ async def upsert_minifig_page(row: pd.Series, db_id: str):
                 return 2  # INSERTED
             else:
                 raise e
+        except HTTPResponseError:
+            return 3
 
 
 async def main(df: pd.DataFrame, db_id: str):
@@ -116,7 +112,10 @@ async def main(df: pd.DataFrame, db_id: str):
     ]
     res = await tqdm.gather(*tasks)  # asyncio.gather
     print(
-        f"{sum([1 for a in res if a == 1])} updated, {sum([1 for a in res if a == 2])} inserted, {sum([1 for a in res if a == 0])} skipped"
+        f"{sum([1 for a in res if a == 1])} updated, "
+        f"{sum([1 for a in res if a == 2])} inserted, "
+        f"{sum([1 for a in res if a == 0])} skipped, "
+        f"{sum([1 for a in res if a == 3])} failed"
     )
 
 
@@ -131,15 +130,6 @@ if __name__ == "__main__":
     parser.add_argument(
         "--update-collec", help="Only execute update of owned", action="store_true"
     )
-    parser.add_argument(
-        "--update", help="Only execute update of existing", action="store_true"
-    )
-    parser.add_argument(
-        "--avg-price", help="Focus on getting missing avg_price", action="store_true"
-    )
-    parser.add_argument(
-        "--appears-in", help="Focus on getting missing appears_in", action="store_true"
-    )
     args = parser.parse_args()
     category = args.category
     print(f"Sending minifigs for category: {category or 'all'}")
@@ -152,15 +142,6 @@ if __name__ == "__main__":
         bl_ids = read_owned("minifigs", category)
         minifig_df = read_minifig_database(category)
         df = minifig_df[minifig_df["id"].isin(bl_ids)]
-    elif args.update:
-        bl_ids_df = get_bl_ids_from_sqlite(PREFIX)
-        if args.avg_price:
-            minifig_df = read_minifigs_with_avg_price(category)
-        elif args.appears_in:
-            minifig_df = read_minifigs_with_appears_in(category)
-        else:
-            minifig_df = read_minifig_database(category)
-        df = minifig_df[minifig_df["id"].isin(bl_ids_df["bl_id"])]
     else:
         df = read_minifig_database(category)
 
@@ -168,7 +149,7 @@ if __name__ == "__main__":
     # Insert most recent first
     df = df.sort_values(by=["release_year", "id"], ascending=False)
 
-    db_id = read_db_id_from_file()
+    db_id = read_db_id_from_file(PREFIX, "minifigs")
 
     start = time.time()
     loop = asyncio.get_event_loop()

@@ -7,6 +7,9 @@ import unicodedata
 from constants import Bcolors
 from exceptions import CategoryNotFound, NameNotFound, BLQuotaExceeded
 from currency_converter import CurrencyConverter
+import asyncio
+import aiohttp
+from tqdm.asyncio import tqdm
 
 cc = CurrencyConverter()
 
@@ -15,6 +18,27 @@ def get_proxies():
     with open(f"../http.txt", "r") as file:
         for line in file:
             yield line.strip()
+
+
+async def check_image_validity(url: str) -> bool:
+    async with aiohttp.ClientSession() as session:
+        resp = await session.get(url, headers=HEADERS)
+    return resp.status == 200
+
+
+async def async_run_image_checks(links: list):
+    tasks = [
+        asyncio.ensure_future(
+            check_image_validity(url)
+        )  # creating task starts coroutine
+        for url in links
+    ]
+    return await tqdm.gather(*tasks)  # asyncio.gather
+
+
+def get_image_links_validity(links: list) -> list[bool]:
+    print("Checking image links...")
+    return asyncio.run(async_run_image_checks(links))
 
 
 def scrape_price_guide_page(

@@ -16,5 +16,5 @@ for cat in sw sh; do
     echo "Waiting 20 minutes..."
     sleep 1200
 done
-
+echo "Done"
 deactivate
