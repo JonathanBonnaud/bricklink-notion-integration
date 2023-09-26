@@ -99,6 +99,26 @@ def read_minifigs_with_appears_in(category: str) -> pd.DataFrame:
     return df
 
 
+def read_minifigs_with_filter(
+    category: Optional[str], column: str = None
+) -> pd.DataFrame:
+    where = (
+        f"WHERE category = '{CATEGORY_CONFIG[category]['name']}'" if category else ""
+    )
+    if column:
+        where = (
+            f"{where} AND {column} IS NOT NULL"
+            if where
+            else f"WHERE {column} IS NOT NULL"
+        )
+
+    conn = sqlite3.connect("data/lego.db")
+    df = pd.read_sql_query(f"SELECT * FROM minifigs {where}", conn)
+    conn.close()
+    print(f"Read {df.shape[0]} minifigs from database (where {column} not null)")
+    return df
+
+
 """
 Read notion_mapping table
 """

@@ -17,6 +17,7 @@ from scraping.helpers import (
     scrape_initial_values,
 )
 from helpers_sqlite import (
+    read_minifigs_with_filter,
     read_minifigs_with_avg_price,
     read_minifigs_with_appears_in,
     read_minifig_database,
@@ -106,11 +107,6 @@ if __name__ == "__main__":
     parser.add_argument("--with-proxy", help="Execute with proxy", action="store_true")
     parser.add_argument("--scrape-all", help="Scrape all fields", action="store_true")
     parser.add_argument(
-        "--get-appears-in",
-        help="Focus on getting missing appears_in",
-        action="store_true",
-    )
-    parser.add_argument(
         "--sort-oldest",
         help="Scrape minifigs from the oldest to the newest",
         action="store_true",
@@ -118,12 +114,19 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(f"Scraping minifig info for category: {args.category}\n")
 
-    if args.get_appears_in:
-        # Get minifigs with appears_in to filer them out
-        db_ids = read_minifigs_with_appears_in(args.category)["id"].values
-    else:
-        # Get minifigs with avg_price to filer them out
-        db_ids = read_minifigs_with_avg_price(args.category)["id"].values
+    # Get minifigs to filer them out
+    db_ids_appears_in = read_minifigs_with_filter(args.category, "appears_in")[
+        "id"
+    ].values
+    db_ids_avg_price = read_minifigs_with_filter(args.category, "avg_price_pln")[
+        "id"
+    ].values
+    db_ids_release_year = read_minifigs_with_filter(args.category, "release_year")[
+        "id"
+    ].values
+    db_ids = set(db_ids_appears_in).intersection(
+        set(db_ids_avg_price), set(db_ids_release_year)
+    )
 
     # Order of ids to scrape 1- owned > 2- wanted > 3- most recent
     owned = wanted = []
@@ -147,7 +150,9 @@ if __name__ == "__main__":
         rest.sort(reverse=True)
 
     minifig_ids = owned + wanted + rest
-    print(f"Number of minifigs to scrape: {len(minifig_ids)}\n")
+    print(
+        f"Number of minifigs to scrape: {len(owned)}+{len(wanted)}+{len(rest)}={len(minifig_ids)}\n"
+    )
 
     if args.with_proxy:
         proxies = get_proxies()
