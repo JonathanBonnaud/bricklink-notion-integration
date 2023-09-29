@@ -15,7 +15,7 @@ cc = CurrencyConverter()
 
 
 def get_proxies():
-    with open(f"../http.txt", "r") as file:
+    with open(f"http.txt", "r") as file:
         for line in file:
             yield line.strip()
 

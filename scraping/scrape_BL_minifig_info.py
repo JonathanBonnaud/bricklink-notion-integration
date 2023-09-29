@@ -18,8 +18,6 @@ from scraping.helpers import (
 )
 from helpers_sqlite import (
     read_minifigs_with_filter,
-    read_minifigs_with_avg_price,
-    read_minifigs_with_appears_in,
     read_minifig_database,
 )
 from notion.helpers_notion import read_owned, read_wanted

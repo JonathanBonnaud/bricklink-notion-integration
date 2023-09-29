@@ -170,21 +170,6 @@ def insert_set(set_dict: dict):
     conn.close()
 
 
-def _insert_notion_mapping(page_id: str, bl_id: str, account_name: str):
-    """
-    DEPRECIATED: only used in old script '_upsert_date.py'
-    """
-    conn = sqlite3.connect("data/lego.db")
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO notion_mapping VALUES (?,?,?)", (page_id, bl_id, account_name)
-    )
-    conn.commit()
-    changes = conn.total_changes
-    conn.close()
-    return changes
-
-
 if __name__ == "__main__":
     """Execute to create the database and table"""
     sql_database()

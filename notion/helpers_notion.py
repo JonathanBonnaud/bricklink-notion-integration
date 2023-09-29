@@ -3,52 +3,57 @@ import os
 from notion_client import Client, AsyncClient
 from notion_client.helpers import collect_paginated_api
 from notion.private_secrets import (
-    NOTION_JONATHAN_SECRET,
-    NOTION_VICTO_SECRET,
+    NOTION_USER_SECRET,
+    NOTION_SECOND_USER_SECRET,
     PAGE_ID,
-    VICTO_PAGE_ID,
-    NOTION_LEGO_COLLECTION_SECRET,
-    LEGO_COLLEC_PAGE_ID,
+    SECOND_USER_PAGE_ID,
+    NOTION_SHARED_WORKSPACE_SECRET,
+    SHARED_WORKSPACE_PAGE_ID,
+    DEFAULT_USER_PREFIX,
+    SECOND_USER_PREFIX,
+    SECOND_USER_ACCOUNT,
+    SHARED_WORKSPACE_PREFIX,
+    SHARED_WORKSPACE_ACCOUNT,
 )
 from constants import CATEGORY_CONFIG
 
 
 def account_setup():
-    if os.environ.get("ACCOUNT") == "VICTO":
-        print("Connected to Victo's Notion\n======================")
-        client = Client(auth=NOTION_VICTO_SECRET)
-        prefix = "VI"
-        page_id = VICTO_PAGE_ID
-    elif os.environ.get("ACCOUNT") == "LEGO_COLLEC":
-        print("Connected to Lego Collection's Notion\n======================")
-        client = Client(auth=NOTION_LEGO_COLLECTION_SECRET)
-        prefix = "LEGO"
-        page_id = LEGO_COLLEC_PAGE_ID
+    if os.environ.get("ACCOUNT") == SECOND_USER_ACCOUNT:
+        name = SECOND_USER_ACCOUNT
+        client = Client(auth=NOTION_SECOND_USER_SECRET)
+        prefix = SECOND_USER_PREFIX
+        page_id = SECOND_USER_PAGE_ID
+    elif os.environ.get("ACCOUNT") == SHARED_WORKSPACE_ACCOUNT:
+        name = SHARED_WORKSPACE_ACCOUNT
+        client = Client(auth=NOTION_SHARED_WORKSPACE_SECRET)
+        prefix = SHARED_WORKSPACE_PREFIX
+        page_id = SHARED_WORKSPACE_PAGE_ID
     else:
-        print("Connected to Jo's Notion\n======================")
-        client = Client(auth=NOTION_JONATHAN_SECRET)
-        prefix = "JO"
+        client = Client(auth=NOTION_USER_SECRET)
+        prefix = name = DEFAULT_USER_PREFIX
         page_id = PAGE_ID
+    print(f"Connected to {name}'s Notion\n======================")
 
     return client, prefix, page_id
 
 
 def async_account_setup():
-    if os.environ.get("ACCOUNT") == "VICTO":
-        print("[async] Connected to Victo's Notion\n======================")
-        client = AsyncClient(auth=NOTION_VICTO_SECRET)
-        prefix = "VI"
-        page_id = VICTO_PAGE_ID
-    elif os.environ.get("ACCOUNT") == "LEGO_COLLEC":
-        print("Connected to Lego Collection's Notion\n======================")
-        client = AsyncClient(auth=NOTION_LEGO_COLLECTION_SECRET)
-        prefix = "LEGO"
-        page_id = LEGO_COLLEC_PAGE_ID
+    if os.environ.get("ACCOUNT") == SECOND_USER_ACCOUNT:
+        name = SECOND_USER_ACCOUNT
+        client = AsyncClient(auth=NOTION_SECOND_USER_SECRET)
+        prefix = SECOND_USER_PREFIX
+        page_id = SECOND_USER_PAGE_ID
+    elif os.environ.get("ACCOUNT") == SHARED_WORKSPACE_ACCOUNT:
+        name = SHARED_WORKSPACE_ACCOUNT
+        client = AsyncClient(auth=NOTION_SHARED_WORKSPACE_SECRET)
+        prefix = SHARED_WORKSPACE_PREFIX
+        page_id = SHARED_WORKSPACE_PAGE_ID
     else:
-        print("[async] Connected to Jo's Notion\n======================")
-        client = AsyncClient(auth=NOTION_JONATHAN_SECRET)
-        prefix = "JO"
+        client = AsyncClient(auth=NOTION_USER_SECRET)
+        prefix = name = DEFAULT_USER_PREFIX
         page_id = PAGE_ID
+    print(f"[async] Connected to {name}'s Notion\n======================")
 
     return client, prefix, page_id
 
