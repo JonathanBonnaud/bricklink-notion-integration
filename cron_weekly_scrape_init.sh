@@ -8,7 +8,7 @@ export PYTHONPATH=$PYTHONPATH:/Users/$USER/PycharmProjects/bricklink-notion-inte
 
 type="sets"
 echo $type
-for cat in sw sh; do  # avt hp hfw col
+for cat in sw sh idea; do  # avt hp hfw col
     echo $cat
     python scraping/scrape_BL_init.py $cat $type >>"/Users/${USER}/PycharmProjects/bricklink-notion-integration/cronlogs/scrape_BL_init_${TIMESTAMP}_std.log" 2>&1
     python scraping/scrape_BL_set_info.py $cat --scrape-only-release-year >>"/Users/${USER}/PycharmProjects/bricklink-notion-integration/cronlogs/scrape_BL_info_${TIMESTAMP}_std.log" 2>&1
@@ -19,7 +19,7 @@ done
 
 type="minifigs"
 echo $type
-for cat in sw sh; do  # avt hp hfw col
+for cat in sw sh idea; do  # avt hp hfw col
     echo $cat
     python scraping/scrape_BL_init.py $cat $type >>"/Users/${USER}/PycharmProjects/bricklink-notion-integration/cronlogs/scrape_BL_init_${TIMESTAMP}_std.log" 2>&1
 done

@@ -30,6 +30,10 @@ CATEGORY_CONFIG = {
         "cat_id": "746",
         "name": "Collectible Minifigures",
     },
+    "idea": {
+        "cat_id": "817",
+        "name": "LEGO Ideas",
+    },
 }
 
 
