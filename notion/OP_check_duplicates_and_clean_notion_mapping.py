@@ -73,12 +73,13 @@ if __name__ == "__main__":
         "type", choices=["minifigs", "sets"], help="type to scrape", type=str
     )
     args = parser.parse_args()
+    cat = args.category
+    types = args.type
 
-    cat = "sw"
     if cat is None:
         exit(r"/!\ Please specify a category!!!")
 
-    existing_pages = read_notion_db("sets", cat)
+    existing_pages = read_notion_db(types, cat)
 
     # # REINSERT MISTAKENLY DELETED ENTRIES
     # tot = 0
@@ -99,7 +100,7 @@ if __name__ == "__main__":
     dupes = [p for p in existing_bl_ids if p in seen or seen.add(p)]
     print(f"Found {len(dupes)} duplicates: {dupes}")
 
-    a = input("Enter DELETE to delete duplicates:")
+    a = input("Enter DELETE to delete duplicates in SQL db:")
     if a != "DELETE":
         exit("Aborted")
 

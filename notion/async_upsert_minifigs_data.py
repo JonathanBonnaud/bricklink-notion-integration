@@ -60,17 +60,17 @@ async def upsert_minifig_page(row: pd.Series, db_id: str):
                 },
                 "Avg price PLN": {
                     "number": row["avg_price_pln"]
-                    if not np.isnan(row["avg_price_pln"])
+                    if not pd.isnull(row["avg_price_pln"])
                     else None
                 },
                 "Avg price EUR": {
                     "number": row["avg_price_eur"]
-                    if not np.isnan(row["avg_price_eur"])
+                    if not pd.isnull(row["avg_price_eur"])
                     else None
                 },
                 "Release Year": {
                     "number": row["release_year"]
-                    if not np.isnan(row["release_year"])
+                    if not pd.isnull(row["release_year"])
                     else None
                 },
                 "Appears In": {"relation": await get_relations(row["appears_in"])},

@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from lxml import etree
 
 from constants import HEADERS, CATEGORY_CONFIG
+from exceptions import BLQuotaExceeded
 from helpers_sqlite import write_to_sql
 from helpers import get_image_links_validity
 
@@ -21,6 +22,14 @@ def beautifulsoup_parse(arg_type: str, category: str, pg: int):
     )
     soup = BeautifulSoup(page.text, "html.parser")
     html = etree.HTML(str(soup))
+
+    try:
+        xpath_error = '//*[@id="blErrorTitle"]'
+        assert not html.xpath(
+            xpath_error
+        )  # Check that error message "Quota Exceeded" is not present
+    except AssertionError:
+        raise BLQuotaExceeded()
 
     # Get ids
     xpath = '/html/body/div[contains(@class, "catalog-list__body")]/form[@id="ItemEditForm"]/table/tr/td/table[contains(@class, "catalog-list__body-main--alternate-row")]/tr/td[2]/font/a[1]/text()'

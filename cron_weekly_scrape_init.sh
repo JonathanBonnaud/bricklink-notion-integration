@@ -7,8 +7,8 @@ source venv/bin/activate
 export PYTHONPATH=$PYTHONPATH:/Users/$USER/PycharmProjects/bricklink-notion-integration
 
 type="sets"
-echo $type
-for cat in sw sh idea; do  # avt hp hfw col
+echo $type":"
+for cat in sw sh idea hp crea; do  # avt hfw col
     echo $cat
     python scraping/scrape_BL_init.py $cat $type >>"/Users/${USER}/PycharmProjects/bricklink-notion-integration/cronlogs/scrape_BL_init_${TIMESTAMP}_std.log" 2>&1
     python scraping/scrape_BL_set_info.py $cat --scrape-only-release-year >>"/Users/${USER}/PycharmProjects/bricklink-notion-integration/cronlogs/scrape_BL_info_${TIMESTAMP}_std.log" 2>&1
@@ -18,10 +18,10 @@ for cat in sw sh idea; do  # avt hp hfw col
 done
 
 type="minifigs"
-echo $type
-for cat in sw sh idea; do  # avt hp hfw col
+echo $type":"
+for cat in sw sh idea hp; do  # avt hfw col
     echo $cat
     python scraping/scrape_BL_init.py $cat $type >>"/Users/${USER}/PycharmProjects/bricklink-notion-integration/cronlogs/scrape_BL_init_${TIMESTAMP}_std.log" 2>&1
 done
-
+echo "Done!"
 deactivate

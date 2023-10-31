@@ -34,6 +34,7 @@ CATEGORY_CONFIG = {
         "cat_id": "817",
         "name": "LEGO Ideas",
     },
+    "crea": {"cat_id": "171.1068", "name": "Creator Expert"},
 }
 
 

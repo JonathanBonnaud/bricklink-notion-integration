@@ -6,7 +6,7 @@ echo $TIMESTAMP
 source venv/bin/activate
 export PYTHONPATH=$PYTHONPATH:/Users/$USERNAME/PycharmProjects/bricklink-notion-integration
 
-for cat in sw sh idea; do
+for cat in sw sh idea hp; do
     echo $cat
     python scraping/scrape_BL_minifig_info.py $cat >>"/Users/${USER}/PycharmProjects/bricklink-notion-integration/cronlogs/scrape_BL_info_${TIMESTAMP}_std.log" 2>&1
 
@@ -16,5 +16,5 @@ for cat in sw sh idea; do
     echo "Waiting 20 minutes..."
     sleep 1200
 done
-echo "Done"
+echo "Done!"
 deactivate
