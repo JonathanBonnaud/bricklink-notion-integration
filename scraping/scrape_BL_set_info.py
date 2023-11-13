@@ -144,7 +144,9 @@ if __name__ == "__main__":
         rest.sort(reverse=True)
 
     set_ids = owned + wanted + rest
-    print(f"Number of sets to scrape: {len(set_ids)}\n")
+    print(
+        f"Number of sets to scrape: {len(owned)}+{len(wanted)}+{len(rest)}={len(set_ids)}\n"
+    )
 
     if args.with_proxy:
         proxies = get_proxies()
@@ -153,7 +155,9 @@ if __name__ == "__main__":
         proxy = None
 
     start = time()
-    MAX_SCRAPE = 100  # len(set_ids) #FIXME: add as script argument
+    MAX_SCRAPE = (
+        100 if len(set_ids) > 100 else len(set_ids)
+    )  # FIXME: add as script argument
     batch_size = 10
     try:
         for batch in tqdm(range(0, MAX_SCRAPE, batch_size)):

@@ -100,6 +100,9 @@ if __name__ == "__main__":
     dupes = [p for p in existing_bl_ids if p in seen or seen.add(p)]
     print(f"Found {len(dupes)} duplicates: {dupes}")
 
+    if len(dupes) == 0:
+        exit()
+
     a = input("Enter DELETE to delete duplicates in SQL db:")
     if a != "DELETE":
         exit("Aborted")

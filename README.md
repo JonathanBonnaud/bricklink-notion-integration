@@ -77,6 +77,9 @@ And add for example:
 - add to table:  last_scraped_at - `DONE`
 - differentiate when really no price vs BL quota reached - `DONE`
 - general refactor (factorize code, create classes, optimize where possible, etc)
+- Add logic (exponential backoff "delay = (base_delay * 2 ** retries + random.uniform(0, 1))")
+    - logic: scrape if today > last_scraped_at + timedelta(days=2 ** failed_count)
+    - add column in db: failed_count [default=0]
 
 ### In notion/
 
