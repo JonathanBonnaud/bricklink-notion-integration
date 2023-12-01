@@ -6,7 +6,7 @@ echo $TIMESTAMP
 source venv/bin/activate
 export PYTHONPATH=$PYTHONPATH:/Users/$USERNAME/PycharmProjects/bricklink-notion-integration
 
-for cat in sw sh idea hp col; do
+for cat in sw sh hp idea col; do
     echo $cat
     python scraping/scrape_BL_minifig_info.py $cat >>"/Users/${USER}/PycharmProjects/bricklink-notion-integration/cronlogs/scrape_BL_info_${TIMESTAMP}_std.log" 2>&1
 

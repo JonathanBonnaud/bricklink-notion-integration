@@ -76,6 +76,7 @@ async def upsert_minifig_page(row: pd.Series, db_id: str):
                 "Appears In": {"relation": await get_relations(row["appears_in"])},
             },
         }
+        # TODO: remove avg_prices, release_year keys from dict if NULL (to prevent overwriting manually entered data in Notion)
 
         page_id, _, _, last_updated_at = await async_get_notion_mapping_from_bl_id(
             row["id"], PREFIX
