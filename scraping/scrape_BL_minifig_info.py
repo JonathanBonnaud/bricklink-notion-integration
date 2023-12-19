@@ -1,6 +1,6 @@
 import argparse
 from time import sleep, time
-from typing import Optional
+from typing import Optional, Tuple
 
 import requests
 from bs4 import BeautifulSoup
@@ -19,13 +19,14 @@ from scraping.helpers import (
 from helpers_sqlite import (
     read_minifigs_with_filter,
     read_minifig_database,
+    read_minifigs_where_failed,
 )
 from notion.helpers_notion import read_owned, read_wanted
 from notion_client.errors import HTTPResponseError
 from sqlite import insert_minifig
 
 
-def get_appears_in(minifig_id: str, proxy: str = None) -> Optional[str]:
+def get_appears_in(minifig_id: str, proxy: str = None) -> Tuple[Optional[str], bool]:
     print("Scraping Appears In...")
     proxies = {"https": proxy} if proxy else None
     page = requests.get(
@@ -40,10 +41,10 @@ def get_appears_in(minifig_id: str, proxy: str = None) -> Optional[str]:
     xpath = '//*[@id="id-main-legacy-table"]/tr/td/table[2]/tr/td/center/table/tr/td[3]/font/a[1]/text()'
     set_list = html.xpath(xpath)
     if appears_in_str := ",".join(set_list):
-        return appears_in_str
+        return appears_in_str, False
     else:
         print(f"{Bcolors.WARNING}Warning: No Appears In found{Bcolors.ENDC}")
-        return None
+        return None, True
 
 
 def beautifulsoup_parse(
@@ -65,16 +66,19 @@ def beautifulsoup_parse(
     # Then scrape the missing info
     try:
         xpath = '//*[@id="yearReleasedSec"]/text()'
+        failed_release_year = False
         release_year = int(html.xpath(xpath)[0])
     except IndexError:
         print(f"{Bcolors.WARNING}Info: No release year found{Bcolors.ENDC}")
+        failed_release_year = True
         release_year = None
 
     avg_price_raw = scrape_price_guide_page("M", minifig_id, proxy=proxy)
     avg_price_raw, avg_price_pln, avg_price_eur = convert_raw_price(avg_price_raw)
 
-    appears_in = get_appears_in(minifig_id, proxy=proxy)
+    appears_in, failed_appears_in = get_appears_in(minifig_id, proxy=proxy)
 
+    failed = any([failed_release_year, failed_appears_in])
     d = {
         "id": minifig_id,
         "name": name,
@@ -87,6 +91,7 @@ def beautifulsoup_parse(
         "avg_price_pln": avg_price_pln,
         "avg_price_eur": avg_price_eur,
         "appears_in": appears_in,
+        "failed": failed,
     }
     # Write to sqlite db
     insert_minifig(d)
@@ -112,7 +117,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(f"Scraping minifig info for category: {args.category}\n")
 
-    # Get minifigs to filer them out
+    # Get minifigs to filer them out (these already have values, so we don't need to scrape them)
     db_ids_appears_in = read_minifigs_with_filter(args.category, "appears_in")[
         "id"
     ].values
@@ -122,8 +127,14 @@ if __name__ == "__main__":
     db_ids_release_year = read_minifigs_with_filter(args.category, "release_year")[
         "id"
     ].values
-    db_ids = set(db_ids_appears_in).intersection(
-        set(db_ids_avg_price), set(db_ids_release_year)
+    # Get minifigs with backoff delay that we don't want to scrape again
+    db_ids_failed = read_minifigs_where_failed(args.category)["id"].values
+
+    # We don't need to scrape figs that have all values OR figs that failed
+    db_ids = (
+        set(db_ids_appears_in)
+        .intersection(set(db_ids_avg_price), set(db_ids_release_year))
+        .union(set(db_ids_failed))
     )
 
     # Order of ids to scrape 1- owned > 2- wanted > 3- most recent

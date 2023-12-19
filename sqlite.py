@@ -25,6 +25,7 @@ def sql_database():
                 bricklink        TEXT NOT NULL,
                 release_year     INTEGER NULL,
                 last_scraped_at  TEXT NOT NULL,
+                failed_count  INTEGER DEFAULT 0 NOT NULL,
                 UNIQUE(id) ON CONFLICT IGNORE
                 );"""
     )  # Creates the table
@@ -70,8 +71,9 @@ def insert_minifig(minifig_dict: dict):
     df = pd.read_sql_query(
         f"SELECT * FROM minifigs WHERE id = '{minifig_dict['id']}'", conn
     )
-
+    failed_count = 0
     if df.shape[0] == 0:
+        # Insert new row
         params = [
             minifig_dict["id"],
             minifig_dict["name"],
@@ -86,10 +88,11 @@ def insert_minifig(minifig_dict: dict):
             minifig_dict["release_year"],
         ]
         cursor.execute(
-            "INSERT INTO minifigs VALUES (?,?,?,?,?,?,?,?,?,?,?,datetime('now'))",
+            "INSERT INTO minifigs VALUES (?,?,?,?,?,?,?,?,?,?,?,datetime('now'),0)",
             params,
         )
     else:
+        # Update existing row
         db_values = df.iloc[0].to_dict()  # update only if the values are not None
         avg_price_raw = (
             f"'{minifig_dict['avg_price_raw']}'"
@@ -105,6 +108,8 @@ def insert_minifig(minifig_dict: dict):
             if minifig_dict["appears_in"]
             else (f"'{db_values['appears_in']}'" if db_values["appears_in"] else "NULL")
         )
+        failed_count = db_values["failed_count"] + 1 if minifig_dict["failed"] else 0
+
         cursor.execute(
             f"""UPDATE minifigs 
             SET appears_in={appears_in}, 
@@ -112,12 +117,15 @@ def insert_minifig(minifig_dict: dict):
             avg_price_pln={minifig_dict['avg_price_pln'] or db_values['avg_price_pln'] or "NULL"},
             avg_price_eur={minifig_dict['avg_price_eur'] or db_values['avg_price_eur'] or "NULL"},
             release_year={minifig_dict['release_year'] or db_values['release_year'] or "NULL"},
-            last_scraped_at=datetime('now')
+            last_scraped_at=datetime('now'),
+            failed_count={failed_count}
             WHERE id='{minifig_dict['id']}'
             """
         )
     conn.commit()
-    print(f"Minifig saved to db [{conn.total_changes} change(s)]")
+    print(
+        f"Minifig(id={minifig_dict['id']},failed_count={failed_count}) saved to db [{conn.total_changes} change(s)]"
+    )
     conn.close()
 
 

@@ -76,10 +76,11 @@ And add for example:
     - 1- owned > 2- wanted > 3- most recent
 - add to table:  last_scraped_at - `DONE`
 - differentiate when really no price vs BL quota reached - `DONE`
-- general refactor (factorize code, create classes, optimize where possible, etc)
-- Add logic (exponential backoff "delay = (base_delay * 2 ** retries + random.uniform(0, 1))")
-    - logic: scrape if today > last_scraped_at + timedelta(days=2 ** failed_count)
+- Add logic (exponential backoff "delay = (base_delay * 2 ** retries + random.uniform(0, 1))") - `DONE`
+    - logic: do not scrape if today < last_scraped_at + 2 ** failed_count days
     - add column in db: failed_count [default=0]
+- general refactor (factorize code, create classes, optimize where possible, etc.)
+- In the future, add logic to scrape based on last_scraped_at
 
 ### In notion/
 

@@ -31,20 +31,18 @@ def read_sets_database(category: Optional[str]) -> pd.DataFrame:
     return df
 
 
-def read_minifigs_with_avg_price(category: str) -> pd.DataFrame:
+def read_minifigs_where_failed(category: str) -> pd.DataFrame:
     where = (
         f"WHERE category = '{CATEGORY_CONFIG[category]['name']}'" if category else ""
     )
-    where = (
-        f"{where} AND avg_price_pln IS NOT NULL"
-        if where
-        else "WHERE avg_price_pln IS NOT NULL"
+    condition = "datetime('now') < datetime(last_scraped_at, '+'||POWER(2,failed_count)||' day')"
+    where = (  # today < last_scraped_at + timedelta(days=2 ** failed_count)
+        f"{where} AND {condition}" if where else f"WHERE {condition}"
     )
-
     conn = sqlite3.connect("data/lego.db")
     df = pd.read_sql_query(f"SELECT * FROM minifigs {where}", conn)
     conn.close()
-    print(f"Read {df.shape[0]} minifigs from database (where avg_price not null)")
+    print(f"Read {df.shape[0]} minifigs from database (with backoff delay)")
     return df
 
 
@@ -82,23 +80,6 @@ def read_sets_with_release_year(category: str) -> pd.DataFrame:
     return df
 
 
-def read_minifigs_with_appears_in(category: str) -> pd.DataFrame:
-    where = (
-        f"WHERE category = '{CATEGORY_CONFIG[category]['name']}'" if category else ""
-    )
-    where = (
-        f"{where} AND appears_in IS NOT NULL"
-        if where
-        else "WHERE appears_in IS NOT NULL"
-    )
-
-    conn = sqlite3.connect("data/lego.db")
-    df = pd.read_sql_query(f"SELECT * FROM minifigs {where}", conn)
-    conn.close()
-    print(f"Read {df.shape[0]} minifigs from database (where appears_in not null)")
-    return df
-
-
 def read_minifigs_with_filter(
     category: Optional[str], column: str = None
 ) -> pd.DataFrame:
@@ -122,20 +103,6 @@ def read_minifigs_with_filter(
 """
 Read notion_mapping table
 """
-
-
-def get_page_id_from_sqlite(bl_id: str, account_name: str) -> Optional[str]:
-    conn = sqlite3.connect("data/lego.db")
-    df = pd.read_sql_query(
-        f"SELECT * FROM notion_mapping WHERE bl_id = '{bl_id}' AND account_name = '{account_name}'",
-        conn,
-    )
-    conn.close()
-    # print(f"Read {df.shape[0]} mapping from database")
-    try:
-        return str(df["page_id"].values[0])
-    except IndexError:
-        return None
 
 
 def get_bl_ids_from_sqlite(account_name: str) -> pd.DataFrame:
@@ -192,6 +159,7 @@ async def async_update_notion_mapping(page_id: str, bl_id: str, account_name: st
         await conn.commit()
 
 
+# ONLY used for BL downloaded file processing
 def insert_to_sqlite(table_name: str, df: pd.DataFrame):
     try:
         assert pd.Series(df["id"]).is_unique
