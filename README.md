@@ -12,7 +12,7 @@ Here are some screenshots of what it looks like in Notion:
 <img width="1000" alt="Screenshot 2024-01-10 at 11 16 49" src="https://github.com/JonathanBonnaud/bricklink-notion-integration/assets/23031977/578ad01e-81de-4c82-ab0e-80d847c2441a">
 <img width="1000" alt="Screenshot 2024-01-10 at 11 09 09" src="https://github.com/JonathanBonnaud/bricklink-notion-integration/assets/23031977/47b5a1e8-e214-4c63-ba5d-62f4656af271">
 
-### Your Inventory
+### Example of Inventory
 
 <img width="1000" alt="Screenshot 2024-01-10 at 11 14 18" src="https://github.com/JonathanBonnaud/bricklink-notion-integration/assets/23031977/3e86d1b0-48b7-4e09-8ead-531d7476ea75">
 
@@ -48,17 +48,11 @@ and
 
 ## 3. To insert/update the data into Notion
 
-Make sure you have the following environment variables set:
+First rename the file `notion/private_secrets_TEMPLATE.py` to `notion/private_secrets.py` with missing credentials for Notion
 
-- ACCOUNT
-
-And create the file `notion/private_secrets.py` with missing credentials for Notion
-
-### 3.1. Create a new database in Notion (to do only once)
+### 3.1. Create a new database in Notion (to be done ONLY ONCE)
 
 `python notion/create_db.py ALL`
-
-or `python notion/create_db.py [minifigs|sets]`
 
 ### 3.2. Insert or update pages to the database in Notion
 
