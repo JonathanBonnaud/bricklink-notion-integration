@@ -9,12 +9,12 @@ Here are some screenshots of what it looks like in Notion:
 
 ### The Database
 
-<img width="500" alt="Screenshot 2024-01-10 at 11 09 48" src="https://github.com/JonathanBonnaud/bricklink-notion-integration/assets/23031977/0c96e1ca-fcf1-4f03-bde5-b7fb53bac099">
-<img width="500" alt="Screenshot 2024-01-10 at 11 09 09" src="https://github.com/JonathanBonnaud/bricklink-notion-integration/assets/23031977/47b5a1e8-e214-4c63-ba5d-62f4656af271">
+<img width="1000" alt="Screenshot 2024-01-10 at 11 16 49" src="https://github.com/JonathanBonnaud/bricklink-notion-integration/assets/23031977/578ad01e-81de-4c82-ab0e-80d847c2441a">
+<img width="1000" alt="Screenshot 2024-01-10 at 11 09 09" src="https://github.com/JonathanBonnaud/bricklink-notion-integration/assets/23031977/47b5a1e8-e214-4c63-ba5d-62f4656af271">
 
 ### Your Inventory
 
-<img width="1926" alt="Screenshot 2024-01-10 at 11 14 18" src="https://github.com/JonathanBonnaud/bricklink-notion-integration/assets/23031977/3e86d1b0-48b7-4e09-8ead-531d7476ea75">
+<img width="1000" alt="Screenshot 2024-01-10 at 11 14 18" src="https://github.com/JonathanBonnaud/bricklink-notion-integration/assets/23031977/3e86d1b0-48b7-4e09-8ead-531d7476ea75">
 
 
 ## 1. Set up Database
