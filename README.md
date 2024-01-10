@@ -5,6 +5,18 @@ The integration allows you to keep track of your Lego collection in Notion.
 
 Using Beautifulsoup for scraping, Notion SDK, and asyncio
 
+Here are some screenshots of what it looks like in Notion:
+
+### The Database
+
+<img width="500" alt="Screenshot 2024-01-10 at 11 09 48" src="https://github.com/JonathanBonnaud/bricklink-notion-integration/assets/23031977/0c96e1ca-fcf1-4f03-bde5-b7fb53bac099">
+<img width="500" alt="Screenshot 2024-01-10 at 11 09 09" src="https://github.com/JonathanBonnaud/bricklink-notion-integration/assets/23031977/47b5a1e8-e214-4c63-ba5d-62f4656af271">
+
+### Your Inventory
+
+<img width="1926" alt="Screenshot 2024-01-10 at 11 14 18" src="https://github.com/JonathanBonnaud/bricklink-notion-integration/assets/23031977/3e86d1b0-48b7-4e09-8ead-531d7476ea75">
+
+
 ## 1. Set up Database
 
 `python sqlite.py`
@@ -86,11 +98,3 @@ And add for example:
 
 - create async methods to send the data to Notion - `DONE`
 - add to notion_mapping table: last_updated_at - `DONE`
-
-### Deployment / Scheduling
-
-- add cron scheduling (weekly scrape ids for new, daily scrape infos) - `DONE`
-- create serverless deployment
-- deploy to AWS
-    - and schedule the scraper
-    - and schedule the inserter/updater
