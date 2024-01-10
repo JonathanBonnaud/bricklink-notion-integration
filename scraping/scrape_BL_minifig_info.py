@@ -73,12 +73,14 @@ def beautifulsoup_parse(
         failed_release_year = True
         release_year = None
 
-    avg_price_raw = scrape_price_guide_page("M", minifig_id, proxy=proxy)
+    avg_price_raw, failed_avg_price_raw = scrape_price_guide_page(
+        "M", minifig_id, proxy=proxy
+    )
     avg_price_raw, avg_price_pln, avg_price_eur = convert_raw_price(avg_price_raw)
 
     appears_in, failed_appears_in = get_appears_in(minifig_id, proxy=proxy)
 
-    failed = any([failed_release_year, failed_appears_in])
+    failed = any([failed_release_year, failed_appears_in, failed_avg_price_raw])
     d = {
         "id": minifig_id,
         "name": name,

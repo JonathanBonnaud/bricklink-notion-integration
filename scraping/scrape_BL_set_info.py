@@ -74,7 +74,7 @@ def beautifulsoup_parse(
 
     avg_price_raw = ""
     if not scrape_only_release_year:
-        avg_price_raw = scrape_price_guide_page("S", set_id, proxy=proxy)
+        avg_price_raw, _ = scrape_price_guide_page("S", set_id, proxy=proxy)
 
     avg_price_raw, avg_price_pln, avg_price_eur = convert_raw_price(avg_price_raw)
 

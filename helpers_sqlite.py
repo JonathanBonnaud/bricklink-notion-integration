@@ -32,6 +32,12 @@ def read_sets_database(category: Optional[str]) -> pd.DataFrame:
 
 
 def read_minifigs_where_failed(category: str) -> pd.DataFrame:
+    """
+    Minifigs that failed to scrape are:
+    - figs without Appears In because they are from sets that we don't scrape (magazines, advent calendars, etc.)
+    - figs without some values because they are newly added to BL, and we need to wait for BL to update them
+    - figs marked for deletion in BL (e.g. sh585 split into sh585a and sh585b)
+    """
     where = (
         f"WHERE category = '{CATEGORY_CONFIG[category]['name']}'" if category else ""
     )

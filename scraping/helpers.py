@@ -43,7 +43,7 @@ def get_image_links_validity(links: list) -> list[bool]:
 
 def scrape_price_guide_page(
     item_type: str, item_id: str, proxy: str = None
-) -> Optional[str]:
+) -> Tuple[Optional[str], bool]:
     print("Scraping price...")
     proxies = {"https": proxy} if proxy else None
     page = requests.get(
@@ -83,11 +83,11 @@ def scrape_price_guide_page(
         or None
     )
     if price:
-        return unicodedata.normalize("NFKD", price[0])
+        return unicodedata.normalize("NFKD", price[0]), False
     else:
         print(f"{Bcolors.FAIL}Warning: No price found{Bcolors.ENDC}")
         # raise AvgPriceNotFound()
-        return ""
+        return "", True
 
 
 def convert_raw_price(raw_price: str) -> Tuple:
