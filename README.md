@@ -16,6 +16,7 @@ Here are some screenshots of what it looks like in Notion:
 
 <img width="1000" alt="Screenshot 2024-01-10 at 11 14 18" src="https://github.com/JonathanBonnaud/bricklink-notion-integration/assets/23031977/3e86d1b0-48b7-4e09-8ead-531d7476ea75">
 
+---
 
 ## 1. Set up Database
 
