@@ -124,7 +124,7 @@ def insert_minifig(minifig_dict: dict):
         )
     conn.commit()
     print(
-        f"Minifig(id={minifig_dict['id']},failed_count={failed_count}) saved to db [{conn.total_changes} change(s)]"
+        f"Minifig(id={minifig_dict['id']},failed_count={failed_count}) saved to db"  # [{conn.total_changes} change(s)]"
     )
     conn.close()
 

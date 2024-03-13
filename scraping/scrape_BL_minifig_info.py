@@ -116,8 +116,19 @@ if __name__ == "__main__":
         help="Scrape minifigs from the oldest to the newest",
         action="store_true",
     )
+    parser.add_argument(
+        "-id",
+        "--bl_id",
+        type=str,
+        help="Scrape one minifig",
+    )
     args = parser.parse_args()
     print(f"Scraping minifig info for category: {args.category}\n")
+
+    if args.bl_id:
+        print(f"BL ID passed: {args.bl_id}\n")
+        beautifulsoup_parse(args.bl_id)
+        exit()
 
     # Get minifigs to filer them out (these already have values, so we don't need to scrape them)
     db_ids_appears_in = read_minifigs_with_filter(args.category, "appears_in")[
