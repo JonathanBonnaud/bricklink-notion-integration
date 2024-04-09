@@ -52,6 +52,21 @@ def read_minifigs_where_failed(category: str) -> pd.DataFrame:
     return df
 
 
+def read_minifigs_to_scrape(category: str) -> pd.DataFrame:
+    """
+    Minifigs ordered by last_scraped_at
+    """
+    where = (
+        f"WHERE category = '{CATEGORY_CONFIG[category]['name']}'" if category else ""
+    )
+    order = f"ORDER BY last_scraped_at ASC"
+    conn = sqlite3.connect("data/lego.db")
+    df = pd.read_sql_query(f"SELECT * FROM minifigs {where} {order}", conn)
+    conn.close()
+    print(f"Read {df.shape[0]} minifigs from database (ordered by last_scraped_at ASC)")
+    return df
+
+
 def read_sets_with_avg_price(category: str) -> pd.DataFrame:
     where = (
         f"WHERE category = '{CATEGORY_CONFIG[category]['name']}'" if category else ""

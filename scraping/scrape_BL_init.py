@@ -124,5 +124,8 @@ if __name__ == "__main__":
         except AssertionError:
             print("Last page:", page_number - 1)
             break  # exit `while` loop
+        except IndexError:
+            print("No page found")
+            break  # exit `while` loop
 
     print(f"Total new inserted: {total_inserted}\n")

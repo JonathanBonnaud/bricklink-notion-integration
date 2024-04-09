@@ -20,6 +20,7 @@ from helpers_sqlite import (
     read_minifigs_with_filter,
     read_minifig_database,
     read_minifigs_where_failed,
+    read_minifigs_to_scrape,
 )
 from notion.helpers_notion import read_owned, read_wanted
 from notion_client.errors import HTTPResponseError
@@ -171,11 +172,14 @@ if __name__ == "__main__":
     else:
         rest.sort(reverse=True)
 
+    routine_scraping = read_minifigs_to_scrape(args.category)["id"].values.tolist()
+
     minifig_ids = owned + wanted + rest
     print(
-        f"Number of minifigs to scrape: {len(owned)}+{len(wanted)}+{len(rest)}={len(minifig_ids)}\n"
+        f"Number of minifigs to scrape: {len(owned)}+{len(wanted)}+{len(rest)}={len(minifig_ids)}, then {len(routine_scraping)}\n"
     )
-
+    minifig_ids += routine_scraping
+    exit()
     if args.with_proxy:
         proxies = get_proxies()
         proxy = next(proxies)
