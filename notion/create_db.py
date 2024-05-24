@@ -1,6 +1,6 @@
 import argparse
 
-from table_properties import MINIFIG_SCHEMA, SET_SCHEMA
+from table_properties import MINIFIG_SCHEMA, SET_SCHEMA, MINIFIG_PRICE_HISTORY_SCHEMA
 from notion.helpers_notion import account_setup, read_db_id_from_file
 
 DB_CONFIG = {
@@ -12,6 +12,11 @@ DB_CONFIG = {
     "sets": {
         "schema": SET_SCHEMA,
         "name": "Sets DB",
+        "icon": "https://www.notion.so/icons/database_lightgray.svg",
+    },
+    "minifigs_price_history": {
+        "schema": MINIFIG_PRICE_HISTORY_SCHEMA,
+        "name": "Minifigs Price History DB",
         "icon": "https://www.notion.so/icons/database_lightgray.svg",
     },
 }
@@ -68,7 +73,10 @@ def update_dbs_to_add_relations():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "type", choices=["minifigs", "sets", "ALL"], help="type to scrape", type=str
+        "type",
+        choices=["minifigs", "sets", "ALL", "minifigs_price_history"],
+        help="type to scrape",
+        type=str,
     )
     args = parser.parse_args()
 

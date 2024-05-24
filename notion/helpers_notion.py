@@ -115,3 +115,21 @@ def read_wanted(db_type: str, category: str = None, client: Client = None, prefi
     return [
         result["properties"]["Id"]["title"][0]["plain_text"] for result in all_results
     ]
+
+
+def read_minifig_price_history_db(db_type: str, client: Client = None, prefix=None):
+    if client is None and prefix is None:
+        client, prefix, _ = account_setup()
+
+    all_results = collect_paginated_api(
+        client.databases.query,
+        database_id=read_db_id_from_file(prefix, db_type),
+    )
+    print(f"Minifig Price History notion DB: {len(all_results)}")
+    return [
+        (
+            result["properties"]["Id"]["title"][0]["plain_text"],
+            result["properties"]["Scraped At"]["date"]["start"],
+        )
+        for result in all_results
+    ]

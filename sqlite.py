@@ -61,6 +61,18 @@ def sql_database():
     )
     conn.commit()
 
+    conn.execute(
+        """CREATE TABLE IF NOT EXISTS minifigs_price_history
+                (id              TEXT NOT NULL,
+                scraped_at  TEXT NOT NULL,
+                avg_price_raw    TEXT NULL,
+                avg_price_pln    REAL NULL,
+                avg_price_eur    REAL NULL,
+                UNIQUE(id, scraped_at) ON CONFLICT IGNORE
+                );"""
+    )
+    conn.commit()
+
     conn.close()
 
 
@@ -126,6 +138,26 @@ def insert_minifig(minifig_dict: dict):
     print(
         f"Minifig(id={minifig_dict['id']},failed_count={failed_count}) saved to db"  # [{conn.total_changes} change(s)]"
     )
+    conn.close()
+
+
+def insert_minifig_price(minifig_dict: dict):
+    conn = sqlite3.connect("data/lego.db")
+    cursor = conn.cursor()
+
+    # Insert new row
+    params = [
+        minifig_dict["id"],
+        minifig_dict["avg_price_raw"],
+        minifig_dict["avg_price_pln"],
+        minifig_dict["avg_price_eur"],
+    ]
+    cursor.execute(
+        "INSERT INTO minifigs_price_history VALUES (?,datetime('now'),?,?,?)",
+        params,
+    )
+    conn.commit()
+    print(f"MinifigPriceHistory saved to db")
     conn.close()
 
 

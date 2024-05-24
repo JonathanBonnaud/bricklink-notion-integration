@@ -1,6 +1,5 @@
 import argparse
 
-import numpy as np
 import pandas as pd
 from notion_client import APIResponseError, APIErrorCode
 from notion_client.errors import HTTPResponseError

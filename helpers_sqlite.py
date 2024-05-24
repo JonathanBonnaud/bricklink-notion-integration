@@ -31,6 +31,18 @@ def read_sets_database(category: Optional[str]) -> pd.DataFrame:
     return df
 
 
+def read_minifigs_price_history_database(category: Optional[str]) -> pd.DataFrame:
+    where = (
+        f"WHERE category = '{CATEGORY_CONFIG[category]['name']}'" if category else ""
+    )
+
+    conn = sqlite3.connect("data/lego.db")
+    df = pd.read_sql_query(f"SELECT * FROM minifigs_price_history {where}", conn)
+    conn.close()
+    print(f"Read {df.shape[0]} minifigs_price_history from database")
+    return df
+
+
 def read_minifigs_where_failed(category: str) -> pd.DataFrame:
     """
     Minifigs that failed to scrape are:

@@ -24,7 +24,7 @@ from helpers_sqlite import (
 )
 from notion.helpers_notion import read_owned, read_wanted
 from notion_client.errors import HTTPResponseError
-from sqlite import insert_minifig
+from sqlite import insert_minifig, insert_minifig_price
 
 
 def get_appears_in(minifig_id: str, proxy: str = None) -> Tuple[Optional[str], bool]:
@@ -98,6 +98,18 @@ def beautifulsoup_parse(
     }
     # Write to sqlite db
     insert_minifig(d)
+    try:
+        assert avg_price_raw is not None
+        insert_minifig_price(
+            {
+                "id": minifig_id,
+                "avg_price_raw": avg_price_raw,
+                "avg_price_pln": avg_price_pln,
+                "avg_price_eur": avg_price_eur,
+            }
+        )
+    except AssertionError:
+        pass
     sleep(5)
     print("\n========================================\n")
 
@@ -179,7 +191,7 @@ if __name__ == "__main__":
         f"Number of minifigs to scrape: {len(owned)}+{len(wanted)}+{len(rest)}={len(minifig_ids)}, then {len(routine_scraping)}\n"
     )
     minifig_ids += routine_scraping
-    exit()
+
     if args.with_proxy:
         proxies = get_proxies()
         proxy = next(proxies)
