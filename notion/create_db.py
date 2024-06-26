@@ -3,6 +3,10 @@ import argparse
 from table_properties import MINIFIG_SCHEMA, SET_SCHEMA, MINIFIG_PRICE_HISTORY_SCHEMA
 from notion.helpers_notion import account_setup, read_db_id_from_file
 
+"""
+https://developers.notion.com/reference/create-a-database
+"""
+
 DB_CONFIG = {
     "minifigs": {
         "schema": MINIFIG_SCHEMA,
@@ -81,6 +85,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.type == "ALL":
+        # TODO: create dbs in order: 1.sets 2.minifigs 3.price_history
         for db_type in DB_CONFIG.keys():
             create_database(db_type)
         update_dbs_to_add_relations()

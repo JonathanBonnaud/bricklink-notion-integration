@@ -48,7 +48,8 @@ and
 
 ## 3. To insert/update the data into Notion
 
-First rename the file `notion/private_secrets_TEMPLATE.py` to `notion/private_secrets.py` with missing credentials for Notion
+First rename the file `notion/private_secrets_TEMPLATE.py` to `notion/private_secrets.py` with missing credentials for
+Notion
 
 ### 3.1. Create a new database in Notion (to be done ONLY ONCE)
 
@@ -87,7 +88,7 @@ And add for example:
     - logic: do not scrape if today < last_scraped_at + 2 ** failed_count days
     - add column in db: failed_count [default=0]
 - general refactor (factorize code, create classes, optimize where possible, etc.)
-- In the future, add logic to scrape based on last_scraped_at
+- In the future, add logic to scrape based on last_scraped_at - `DONE`
 
 ### In notion/
 

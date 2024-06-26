@@ -1,4 +1,5 @@
 MINIFIG_SCHEMA = {
+    # DB properties
     "Id": {"name": "Id", "type": "title", "title": {}},
     "Name": {"id": "title", "name": "Name", "type": "rich_text", "rich_text": {}},
     "Category": {
@@ -60,9 +61,30 @@ MINIFIG_SCHEMA = {
         "type": "formula",
         "formula": {"expression": 'prop("Total Quantity") - 1'},
     },
+    "Status": {
+        "name": "Category",
+        "type": "select",
+        "select": {
+            "options": [
+                {"name": "Purchased", "color": "orange"},
+                {"name": "In Research", "color": "yellow"},
+            ]
+        },
+    },
+    "is_released_this_year": {
+        "name": "is_released_this_year",
+        "type": "formula",
+        "formula": {"expression": 'prop("Release Year") == year(now())'},
+    },
+    # "OLX Search": {
+    #     "name": "OLX Search",
+    #     "type": "formula",
+    #     "formula": {"expression": '"https://www.olx.pl/oferty/q-lego-" + prop("Id")'},
+    # },
 }
 
 SET_SCHEMA = {
+    # DB properties
     "Id": {"name": "Id", "type": "title", "title": {}},
     "Name": {"id": "title", "name": "Name", "type": "rich_text", "rich_text": {}},
     "Category": {
@@ -90,17 +112,6 @@ SET_SCHEMA = {
         "type": "number",
         "number": {"format": "euro"},
     },
-    # "Lego price raw": {"name": "Avg price raw", "type": "rich_text", "rich_text": {}},
-    # "Lego price PLN": {
-    #     "name": "Avg price PLN",
-    #     "type": "number",
-    #     "number": {"format": "zloty"},
-    # },
-    # "Lego price EUR": {
-    #     "name": "Avg price EUR",
-    #     "type": "number",
-    #     "number": {"format": "euro"},
-    # },
     "BrickLink": {"name": "BrickLink", "type": "url", "url": {}},
     "Release Year": {
         "name": "Release Year",
@@ -125,6 +136,33 @@ SET_SCHEMA = {
         "type": "number",
         "number": {"format": "number"},
     },
+    "is_released_this_year": {
+        "name": "is_released_this_year",
+        "type": "formula",
+        "formula": {"expression": 'prop("Release Year") == year(now())'},
+    },
+    "Lego store": {
+        "name": "Lego store",
+        "type": "formula",
+        "formula": {
+            "expression": '"https://www.lego.com/pl-pl/product/" + substring(prop("Id"), 0 , -2)'
+        },
+    },
+    "Brickset": {
+        "name": "Brickset",
+        "type": "formula",
+        "formula": {"expression": '"https://brickset.com/sets/" + prop("Id")'},
+    },
+    # "Promoklocki": {
+    #     "name": "Promoklocki",
+    #     "type": "formula",
+    #     "formula": {"expression": '"https://promoklocki.pl/"+ substring(prop("Id"), 0, -2)'},
+    # },
+    # "OLX Search": {
+    #     "name": "OLX Search",
+    #     "type": "formula",
+    #     "formula": {"expression": '"https://www.olx.pl/oferty/q-lego-" + substring(prop("Id"), 0, -2)'},
+    # },
 }
 
 MINIFIG_PRICE_HISTORY_SCHEMA = {
@@ -145,8 +183,12 @@ MINIFIG_PRICE_HISTORY_SCHEMA = {
         "type": "date",
         "date": {},
     },
-    # "Minifig": {
-    #     "name": "Minifig",
-    #     "type": "relation",
-    # },
+    "Minifig": {
+        "name": "Minifig",
+        "type": "relation",
+        "relation": {
+            "database_id": "8e5d75c0-230f-4b31-a58d-0aabb6f86aad",  # FIXME: add this in create_db script
+            "dual_property": {},
+        },
+    },
 }

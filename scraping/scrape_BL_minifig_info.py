@@ -100,6 +100,7 @@ def beautifulsoup_parse(
     insert_minifig(d)
     try:
         assert avg_price_raw is not None
+        # TODO: do not insert if previous price = new price
         insert_minifig_price(
             {
                 "id": minifig_id,

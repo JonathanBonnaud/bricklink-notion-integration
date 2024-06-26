@@ -12,6 +12,7 @@ for cat in sw sh hp idea col; do
 
     # upsert to Notion
     python notion/async_upsert_minifigs_data.py $cat >>"/Users/${USER}/PycharmProjects/bricklink-notion-integration/cronlogs/upsert_to_notion_${TIMESTAMP}_std.log" 2>&1
+    python notion/async_upsert_minifigs_price_history_data.py $cat >>"/Users/${USER}/PycharmProjects/bricklink-notion-integration/cronlogs/upsert_to_notion_${TIMESTAMP}_std.log" 2>&1
 
     echo "Waiting 20 minutes..."
     sleep 1200

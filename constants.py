@@ -36,6 +36,7 @@ CATEGORY_CONFIG = {
     },
     "crea": {"cat_id": "171.1068", "name": "Creator Expert"},
     "dune": {"cat_id": "1286", "name": "Dune"},
+    "poc": {"cat_id": "761", "name": "Pirates of the Caribbean"},
 }
 
 
