@@ -102,6 +102,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     category = args.category
 
+    print("Reading DB...")
     df = read_minifigs_price_history_database(category)
     df["scraped_at"] = pd.to_datetime(
         df["scraped_at"].str[:-3], format="%Y-%m-%d %H:%M"
@@ -131,4 +132,4 @@ if __name__ == "__main__":
         loop.run_until_complete(loop.shutdown_asyncgens())
         loop.close()
     end = time.time()
-    print(f"Time elapsed: {round(end - start, 2)}s")
+    print(f"Time elapsed for insert: {round(end - start, 2)}s")

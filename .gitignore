@@ -4,3 +4,4 @@ cronlogs/*
 crontab.setup
 http.txt
 cron_daily_scrape_info.sh
+cron_weekly_scrape_init.sh

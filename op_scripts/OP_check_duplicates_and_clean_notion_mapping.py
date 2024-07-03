@@ -103,13 +103,16 @@ if __name__ == "__main__":
     if len(dupes) == 0:
         exit()
 
+    df = get_notion_mapping_from_sqlite(PREFIX, cat)  # In sql db
+    print("\nThese are the Notion pages to KEEP (delete the other one):")
+    print(df[df.bl_id.isin(dupes)])
+
     a = input("Enter DELETE to delete duplicates in SQL db:")
     if a != "DELETE":
         exit("Aborted")
 
     if len(dupes) > 0:
         tot = 0
-        df = get_notion_mapping_from_sqlite(PREFIX, cat)  # In sql db
         for _, df_row in df.iterrows():
             if df_row["page_id"] not in existing_page_ids:  # In notion db
                 deletions = delete(df_row["bl_id"], df_row["page_id"], PREFIX)

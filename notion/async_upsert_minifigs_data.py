@@ -84,6 +84,7 @@ async def upsert_minifig_page(row: pd.Series, db_id: str):
             return 0  # SKIPPED
 
         try:
+            # FIXME: investigate why first insert of new category always fails
             page = await NOTION.pages.retrieve(page_id)
             await notion_update(row["id"], page["id"], data)
             await async_update_notion_mapping(page["id"], row["id"], PREFIX)
@@ -93,7 +94,9 @@ async def upsert_minifig_page(row: pd.Series, db_id: str):
                 print("Rate limited, sleeping for 5 minutes...")
                 await asyncio.sleep(60 * 5)
             elif e.code == APIErrorCode.ValidationError:  # Page not found
+                await asyncio.sleep(0)
                 page_created = await NOTION.pages.create(database_id=db_id, **data)
+                await asyncio.sleep(0)
                 await async_insert_notion_mapping(page_created["id"], row["id"], PREFIX)
                 print(f"Created page for {row['id']}")
                 return 2  # INSERTED
