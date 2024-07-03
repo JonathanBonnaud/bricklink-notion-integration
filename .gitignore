@@ -3,3 +3,4 @@ notion/files/*
 cronlogs/*
 crontab.setup
 http.txt
+cron_daily_scrape_info.sh
