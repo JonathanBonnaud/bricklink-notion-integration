@@ -19,7 +19,7 @@ from notion.helpers_notion import async_account_setup, read_db_id_from_file
 
 NOTION, PREFIX, _ = async_account_setup()
 
-SEM = asyncio.Semaphore(30)
+SEM = asyncio.Semaphore(20)
 
 
 async def notion_update(row_id: str, page_id: str, data: dict):
@@ -97,8 +97,7 @@ async def upsert_set_page(row: pd.Series, db_id: str):
                     print(f"Created page for {row['id']}")
                     return 2  # INSERTED
                 except Exception as e:
-                    print(f"Error creating page for {row['id']}")
-                    print(e)
+                    print(f"Error creating page for {row['id']}\n\t{e}")
                     return 3
             else:
                 print(f"Uncaught Error: {e}")

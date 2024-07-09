@@ -32,9 +32,7 @@ def read_sets_database(category: Optional[str]) -> pd.DataFrame:
 
 
 def read_minifigs_price_history_database(category: Optional[str]) -> pd.DataFrame:
-    where = (
-        f"WHERE category = '{CATEGORY_CONFIG[category]['name']}'" if category else ""
-    )
+    where = f"WHERE id LIKE '{category}%'" if category else ""
 
     conn = sqlite3.connect("data/lego.db")
     df = pd.read_sql_query(f"SELECT * FROM minifigs_price_history {where}", conn)
@@ -171,6 +169,7 @@ async def async_get_notion_mapping_from_bl_id(bl_id: str, account_name: str) -> 
                 ) = await cursor.fetchone()
                 return page_id, _bl_id, _account_name, last_updated_at
             except TypeError:  # no mapping found in table
+                print("No mapping found in table")
                 return None, None, None, None
 
 
