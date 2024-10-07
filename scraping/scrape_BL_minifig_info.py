@@ -24,7 +24,7 @@ from helpers_sqlite import (
 )
 from notion.helpers_notion import read_owned, read_wanted
 from notion_client.errors import HTTPResponseError
-from sqlite import insert_minifig, insert_minifig_price
+from sqlite import upsert_minifig, insert_minifig_price
 
 
 def get_appears_in(minifig_id: str, proxy: str = None) -> Tuple[Optional[str], bool]:
@@ -97,10 +97,9 @@ def beautifulsoup_parse(
         "failed": failed,
     }
     # Write to sqlite db
-    insert_minifig(d)
+    upsert_minifig(d)
     try:
         assert avg_price_raw is not None
-        # TODO: do not insert if previous price = new price
         insert_minifig_price(
             {
                 "id": minifig_id,

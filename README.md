@@ -72,7 +72,7 @@ And add for example:
 
 ---
 
-## Remaining Work To Do
+## Work To Do
 
 ### In scraping/
 
@@ -87,8 +87,9 @@ And add for example:
 - Add logic (exponential backoff "delay = (base_delay * 2 ** retries + random.uniform(0, 1))") - `DONE`
     - logic: do not scrape if today < last_scraped_at + 2 ** failed_count days
     - add column in db: failed_count [default=0]
-- general refactor (factorize code, create classes, optimize where possible, etc.)
 - In the future, add logic to scrape based on last_scraped_at - `DONE`
+- Only record price when the diff with previous price is significant - `DONE`
+- general refactor (factorize code, create classes, optimize where possible, etc.)
 
 ### In notion/
 

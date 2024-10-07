@@ -76,7 +76,7 @@ def sql_database():
     conn.close()
 
 
-def insert_minifig(minifig_dict: dict):
+def upsert_minifig(minifig_dict: dict):
     conn = sqlite3.connect("data/lego.db")
     cursor = conn.cursor()
 
@@ -141,23 +141,59 @@ def insert_minifig(minifig_dict: dict):
     conn.close()
 
 
+def should_record_price(current_price: float, previous_price: float) -> bool:
+    # Calculate the absolute difference between the current and previous prices
+    difference = abs(current_price - previous_price)
+
+    # Determine the threshold based on the previous price
+    if previous_price <= 3:
+        threshold = 0.75 * previous_price  # 75% change for prices less than 3 EUR
+    elif 4 <= previous_price <= 6:
+        threshold = 0.50 * previous_price  # 50% change for prices between 4 and 6 EUR
+    elif 7 <= previous_price <= 10:
+        threshold = 0.40 * previous_price  # 40% change for prices between 7 and 10 EUR
+    elif 11 <= previous_price <= 20:
+        threshold = 0.20 * previous_price  # 20% change for prices between 11 and 20 EUR
+    elif 21 <= previous_price <= 50:
+        threshold = 0.10 * previous_price  # 10% change for prices between 21 and 50 EUR
+    else:
+        # Define additional ranges as needed or handle prices above 50 EUR
+        threshold = 0.05 * previous_price  # Example: 5% change for prices above 50 EUR
+
+    # Check if the difference is greater than or equal to the threshold
+    print(
+        f"{previous_price} -> {current_price} : {'Recorded' if difference >= threshold else 'Not Recorded'}"
+    )
+    return difference >= threshold
+
+
 def insert_minifig_price(minifig_dict: dict):
     conn = sqlite3.connect("data/lego.db")
     cursor = conn.cursor()
 
-    # Insert new row
-    params = [
-        minifig_dict["id"],
-        minifig_dict["avg_price_raw"],
-        minifig_dict["avg_price_pln"],
-        minifig_dict["avg_price_eur"],
-    ]
-    cursor.execute(
-        "INSERT INTO minifigs_price_history VALUES (?,datetime('now'),?,?,?)",
-        params,
+    df = pd.read_sql_query(
+        f"SELECT * FROM minifigs_price_history WHERE id = '{minifig_dict['id']}' ORDER BY scraped_at DESC LIMIT 1",
+        conn,
     )
-    conn.commit()
-    print(f"MinifigPriceHistory saved to db")
+
+    # Do not record the price if the difference between the last scraped price and the new one is not significant
+    if df.shape[0] == 0 or should_record_price(
+        minifig_dict["avg_price_eur"], df.loc[0]["avg_price_eur"]
+    ):
+        # Insert new row
+        params = [
+            minifig_dict["id"],
+            minifig_dict["avg_price_raw"],
+            minifig_dict["avg_price_pln"],
+            minifig_dict["avg_price_eur"],
+        ]
+        cursor.execute(
+            "INSERT INTO minifigs_price_history VALUES (?,datetime('now'),?,?,?)",
+            params,
+        )
+
+        conn.commit()
+        print(f"MinifigPriceHistory saved to db")
     conn.close()
 
 

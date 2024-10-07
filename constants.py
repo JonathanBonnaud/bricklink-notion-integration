@@ -18,6 +18,9 @@ CATEGORY_CONFIG = {
     "poc": {"cat_id": "761", "name": "Pirates of the Caribbean"},
     "mof": {"cat_id": "781", "name": "Monster Fighters"},
     "lor": {"cat_id": "789", "name": "The Hobbit and The Lord of the Rings"},
+    "adv": {"cat_id": "390.714", "name": "Advent Calendar"},
+    "toy": {"cat_id": "732", "name": "Toy Story"},
+    "hs": {"cat_id": "1042", "name": "Hidden Side"},
 }
 
 
