@@ -3,12 +3,12 @@ from datetime import datetime
 
 import requests
 from bs4 import BeautifulSoup
+from helpers import get_image_links_validity
 from lxml import etree
 
-from constants import HEADERS, CATEGORY_CONFIG
+from constants import CATEGORY_CONFIG, HEADERS
 from exceptions import BLQuotaExceeded
 from helpers_sqlite import write_to_sql
-from helpers import get_image_links_validity
 
 
 def beautifulsoup_parse(arg_type: str, category: str, pg: int):
@@ -122,10 +122,13 @@ if __name__ == "__main__":
             print(f"Page {page_number} done")
             list_all.extend(page_ids_list)
         except AssertionError:
-            print("Last page:", page_number - 1)
+            print(f"Last page: {page_number - 1}")
             break  # exit `while` loop
         except IndexError:
             print("No page found")
             break  # exit `while` loop
+        except BLQuotaExceeded:
+            print("Error: BL Quota Exceeded")
+            break
 
     print(f"Total new inserted: {total_inserted}\n")

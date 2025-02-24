@@ -1,21 +1,22 @@
 import os
 
-from notion_client import Client, AsyncClient
+from notion_client import AsyncClient, Client
 from notion_client.helpers import collect_paginated_api
-from notion.private_secrets import (
-    NOTION_USER_SECRET,
-    NOTION_SECOND_USER_SECRET,
-    PAGE_ID,
-    SECOND_USER_PAGE_ID,
-    NOTION_SHARED_WORKSPACE_SECRET,
-    SHARED_WORKSPACE_PAGE_ID,
-    DEFAULT_USER_PREFIX,
-    SECOND_USER_PREFIX,
-    SECOND_USER_ACCOUNT,
-    SHARED_WORKSPACE_PREFIX,
-    SHARED_WORKSPACE_ACCOUNT,
-)
+
 from constants import CATEGORY_CONFIG
+from notion.private_secrets import (
+    DEFAULT_USER_PREFIX,
+    NOTION_SECOND_USER_SECRET,
+    NOTION_SHARED_WORKSPACE_SECRET,
+    NOTION_USER_SECRET,
+    PAGE_ID,
+    SECOND_USER_ACCOUNT,
+    SECOND_USER_PAGE_ID,
+    SECOND_USER_PREFIX,
+    SHARED_WORKSPACE_ACCOUNT,
+    SHARED_WORKSPACE_PAGE_ID,
+    SHARED_WORKSPACE_PREFIX,
+)
 
 
 def account_setup():

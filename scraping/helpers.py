@@ -1,15 +1,18 @@
-import requests
-from typing import Optional, Tuple
-from constants import HEADERS
-from bs4 import BeautifulSoup
-from lxml import etree
-import unicodedata
-from constants import Bcolors
-from exceptions import CategoryNotFound, NameNotFound, BLQuotaExceeded
-from currency_converter import CurrencyConverter
 import asyncio
+import ssl
+import unicodedata
+from typing import Optional, Tuple
+
 import aiohttp
+import certifi
+import requests
+from bs4 import BeautifulSoup
+from currency_converter import CurrencyConverter
+from lxml import etree
 from tqdm.asyncio import tqdm
+
+from constants import HEADERS, Bcolors
+from exceptions import BLQuotaExceeded, CategoryNotFound, NameNotFound
 
 cc = CurrencyConverter()
 
@@ -20,16 +23,17 @@ def get_proxies():
             yield line.strip()
 
 
-async def check_image_validity(url: str) -> bool:
+async def check_image_validity(url: str, ssl_context) -> bool:
     async with aiohttp.ClientSession() as session:
-        resp = await session.get(url, headers=HEADERS)
+        resp = await session.get(url, headers=HEADERS, ssl=ssl_context)
     return resp.status == 200
 
 
 async def async_run_image_checks(links: list):
+    ssl_context = ssl.create_default_context(cafile=certifi.where())
     tasks = [
         asyncio.ensure_future(
-            check_image_validity(url)
+            check_image_validity(url, ssl_context)
         )  # creating task starts coroutine
         for url in links
     ]

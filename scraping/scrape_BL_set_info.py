@@ -4,25 +4,24 @@ from time import sleep, time
 import requests
 from bs4 import BeautifulSoup
 from lxml import etree
-from requests.exceptions import ProxyError, ConnectTimeout, SSLError
+from requests.exceptions import ConnectTimeout, ProxyError, SSLError
 from tqdm import tqdm
 
-from constants import HEADERS, CATEGORY_CONFIG, Bcolors
+from constants import CATEGORY_CONFIG, HEADERS, Bcolors
 from exceptions import BLQuotaExceeded
-from scraping.helpers import (
-    get_proxies,
-    scrape_price_guide_page,
-    convert_raw_price,
-    scrape_initial_values,
-)
 from helpers_sqlite import (
+    read_sets_database,
     read_sets_with_avg_price,
     read_sets_with_release_year,
-    read_sets_database,
 )
 from notion.helpers_notion import read_owned, read_wanted
+from scraping.helpers import (
+    convert_raw_price,
+    get_proxies,
+    scrape_initial_values,
+    scrape_price_guide_page,
+)
 from sqlite import insert_set
-
 
 # def get_minifigs_included(set_id: str, proxy: str = None) -> Optional[str]:
 #     print("Scraping Minifigs Included...")

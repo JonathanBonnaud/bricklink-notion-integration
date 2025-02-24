@@ -1,19 +1,19 @@
 import argparse
-
-import pandas as pd
-from notion_client import APIResponseError, APIErrorCode
-from notion_client.errors import HTTPResponseError
-from tqdm import tqdm
-from tqdm.asyncio import tqdm
 import asyncio
 import time
 
+import pandas as pd
+from notion_client import APIErrorCode, APIResponseError
+from notion_client.errors import HTTPResponseError
+from tqdm import tqdm
+from tqdm.asyncio import tqdm
+
 from helpers_sqlite import (
-    read_sets_database,
     async_get_notion_mapping_from_bl_id,
-    get_bl_ids_from_sqlite,
-    async_update_notion_mapping,
     async_insert_notion_mapping,
+    async_update_notion_mapping,
+    get_bl_ids_from_sqlite,
+    read_sets_database,
 )
 from notion.helpers_notion import async_account_setup, read_db_id_from_file
 
@@ -47,19 +47,25 @@ async def upsert_set_page(row: pd.Series, db_id: str):
                     "rich_text": [{"text": {"content": row["avg_price_raw"] or ""}}]
                 },
                 "Avg price PLN": {
-                    "number": row["avg_price_pln"]
-                    if not pd.isnull(row["avg_price_pln"])
-                    else None
+                    "number": (
+                        row["avg_price_pln"]
+                        if not pd.isnull(row["avg_price_pln"])
+                        else None
+                    )
                 },
                 "Avg price EUR": {
-                    "number": row["avg_price_eur"]
-                    if not pd.isnull(row["avg_price_eur"])
-                    else None
+                    "number": (
+                        row["avg_price_eur"]
+                        if not pd.isnull(row["avg_price_eur"])
+                        else None
+                    )
                 },
                 "Release Year": {
-                    "number": row["release_year"]
-                    if not pd.isnull(row["release_year"])
-                    else None
+                    "number": (
+                        row["release_year"]
+                        if not pd.isnull(row["release_year"])
+                        else None
+                    )
                 },
                 # # /!\ Need to be excluded not to update 'Minifigs Included' with empty values /!\
                 # "Minifigs Included": {

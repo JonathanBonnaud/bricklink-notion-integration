@@ -1,21 +1,21 @@
 import argparse
+import asyncio
+import time
+from uuid import NAMESPACE_DNS, uuid5
 
 import pandas as pd
 from notion_client.errors import HTTPResponseError
 from tqdm.asyncio import tqdm
-import asyncio
-import time
 
 from helpers_sqlite import (
-    read_minifigs_price_history_database,
     async_get_page_id_from_sqlite,
+    read_minifigs_price_history_database,
 )
 from notion.helpers_notion import (
     async_account_setup,
     read_db_id_from_file,
     read_minifig_price_history_db,
 )
-from uuid import uuid5, NAMESPACE_DNS
 
 NOTION, PREFIX, _ = async_account_setup()
 
@@ -42,14 +42,18 @@ async def upsert_minifig_price_history_page(row: pd.Series, db_id: str):
                     "rich_text": [{"text": {"content": row["avg_price_raw"] or ""}}]
                 },
                 "Avg price PLN": {
-                    "number": row["avg_price_pln"]
-                    if not pd.isnull(row["avg_price_pln"])
-                    else None
+                    "number": (
+                        row["avg_price_pln"]
+                        if not pd.isnull(row["avg_price_pln"])
+                        else None
+                    )
                 },
                 "Avg price EUR": {
-                    "number": row["avg_price_eur"]
-                    if not pd.isnull(row["avg_price_eur"])
-                    else None
+                    "number": (
+                        row["avg_price_eur"]
+                        if not pd.isnull(row["avg_price_eur"])
+                        else None
+                    )
                 },
                 "Scraped At": {"date": {"start": row["scraped_at"]}},
                 "Minifig": {"relation": await get_relations(row["id"])},

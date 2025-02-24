@@ -5,26 +5,26 @@ from typing import Optional, Tuple
 import requests
 from bs4 import BeautifulSoup
 from lxml import etree
-from requests.exceptions import ProxyError, ConnectTimeout, SSLError
+from notion_client.errors import HTTPResponseError
+from requests.exceptions import ConnectTimeout, ProxyError, SSLError
 from tqdm import tqdm
 
-from constants import HEADERS, CATEGORY_CONFIG, Bcolors
+from constants import CATEGORY_CONFIG, HEADERS, Bcolors
 from exceptions import BLQuotaExceeded
-from scraping.helpers import (
-    get_proxies,
-    scrape_price_guide_page,
-    convert_raw_price,
-    scrape_initial_values,
-)
 from helpers_sqlite import (
-    read_minifigs_with_filter,
     read_minifig_database,
-    read_minifigs_where_failed,
     read_minifigs_to_scrape,
+    read_minifigs_where_failed,
+    read_minifigs_with_filter,
 )
 from notion.helpers_notion import read_owned, read_wanted
-from notion_client.errors import HTTPResponseError
-from sqlite import upsert_minifig, insert_minifig_price
+from scraping.helpers import (
+    convert_raw_price,
+    get_proxies,
+    scrape_initial_values,
+    scrape_price_guide_page,
+)
+from sqlite import insert_minifig_price, upsert_minifig
 
 
 def get_appears_in(minifig_id: str, proxy: str = None) -> Tuple[Optional[str], bool]:

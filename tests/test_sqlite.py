@@ -1,5 +1,6 @@
-from sqlite import should_record_price
 from pytest import mark
+
+from sqlite import should_record_price
 
 
 @mark.parametrize(

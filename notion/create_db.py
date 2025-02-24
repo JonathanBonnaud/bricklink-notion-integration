@@ -1,7 +1,8 @@
 import argparse
+import os
 
-from table_properties import MINIFIG_SCHEMA, SET_SCHEMA, MINIFIG_PRICE_HISTORY_SCHEMA
 from notion.helpers_notion import account_setup, read_db_id_from_file
+from table_properties import MINIFIG_PRICE_HISTORY_SCHEMA, MINIFIG_SCHEMA, SET_SCHEMA
 
 """
 https://developers.notion.com/reference/create-a-database
@@ -29,6 +30,7 @@ NOTION, PREFIX, PAGE_ID = account_setup()
 
 
 def write_to_file(db_type: str, db_id: str):
+    os.makedirs("notion/files", exist_ok=True)  # Create folder if it doesn't exist
     with open(f"notion/files/{PREFIX}_{db_type}_database_id.txt", "w") as file:
         file.write(db_id)
 
